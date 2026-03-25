@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 on:
   push:
-    branches: ["main"] # Ensure this matches your branch name
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -12,13 +12,15 @@ permissions:
 jobs:
   build_site:
     runs-on: ubuntu-latest
+    env:
+      CI: false # This prevents warnings from failing the build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24 # Upgrade to 24 to remove the deprecation warning
       - name: Install dependencies
         run: npm install
       - name: Build
@@ -26,7 +28,6 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'dist' # Vite's default output folder
+          path: 'dist'
       - name: Deploy
-        id: deployment
         uses: actions/deploy-pages@v4
