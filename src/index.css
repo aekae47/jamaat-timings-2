@@ -1,13 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:wght@700&family=Lato:wght@500;600;700&family=Google+Sans+Code:wght@600;700&display=swap');
+/* MUST BE AT THE VERY TOP */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:wght@700&family=Lato:wght@500;600;700&display=swap');
 
 :root {
-  font-family: 'Montserrat', sans-serif;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
 }
 
+body {
+  font-family: var(--font-montserrat);
+}
+
+/* Ensure these classes match what is used in your App.jsx */
 h1, h2, h3, .font-serif {
-  font-family: 'Playfair Display', serif;
-}
-
-.font-mono {
-  font-family: 'Google Sans Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: var(--font-playfair) !important;
 }
