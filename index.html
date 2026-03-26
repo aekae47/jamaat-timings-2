@@ -8,6 +8,11 @@
     darkMode: 'class',
     theme: {
       extend: {
+        fontFamily: {
+        // This forces Tailwind's 'font-sans' class to use Montserrat
+        sans: ['Montserrat', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
+      },
         colors: {
           brand: {
             50: '#f0f9f9',
@@ -49,6 +54,19 @@
     <title>Jamaat on Time</title>
     
     <style>
+      
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
+
+    /* Force global application */
+    html, body, #root {
+        font-family: 'Montserrat', sans-serif !important;
+    }
+
+    h1, h2, h3, .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+
         /* Essential global styles from your original app */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
