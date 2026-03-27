@@ -393,7 +393,7 @@ export default function App() {
                               const [h, mins] = m.timings[eidKey].time.split(':');
                               return (
                                   <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] border-amber-500 mb-1 animate-card cursor-pointer">
-                                      <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-amber-400"></i><div><h4 className="font-ptsans font-bold text-lg dark:text-white leading-tight">{m.name}</h4><p className="text-[9px] text-gray-400">{m.area}</p></div></div>
+                                      <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-amber-400"></i><div><h4 className="font-sans font-bold text-lg dark:text-white leading-tight">{m.name}</h4><p className="text-[9px] text-gray-400">{m.area}</p></div></div>
                                       <div className="text-right font-anonymous font-bold text-lg dark:text-white">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
                                   </div>
                               );
@@ -418,7 +418,7 @@ export default function App() {
                                       <div className="flex-1 flex items-center gap-2">
                                           <i className="fas fa-mosque text-[10px] text-gray-400"></i>
                                           <div>
-                                              <h4 className="font-ptsans font-bold text-lg dark:text-white leading-tight">{m.name}</h4>
+                                              <h4 className="font-sans font-bold text-lg dark:text-white leading-tight">{m.name}</h4>
                                               <p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p>
                                               {taraweehData && <span className="inline-block text-[8px] font-bold text-amber-800 dark:text-amber-100 mt-1 px-1.5 py-0.5 rounded bg-amber-400 dark:bg-amber-600 shadow-sm uppercase font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweehData}</span> P</span>}
                                           </div>
@@ -580,7 +580,7 @@ export default function App() {
                         {viewMode === 'list' && renderListMode()}
                         {viewMode === 'info' && (
                             <div className="animate-card max-w-sm mx-auto pt-6 space-y-8 pb-10">
-                                <div className="flex justify-center"><img src="/public/assets/bismillah-jot1.png" className="h-16 w-auto opacity-80 dark:invert" alt="Bismillah" /></div>
+                                <div className="flex justify-center"><img src="assets/bismillah-jot1.png" className="h-16 w-auto opacity-80 dark:invert" alt="Bismillah" /></div>
                                 <p className="text-center text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-serif">"Alḥamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
                                 
                                 <div className="space-y-3 font-sans">
