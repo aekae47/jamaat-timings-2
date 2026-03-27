@@ -580,7 +580,7 @@ export default function App() {
                         {viewMode === 'list' && renderListMode()}
                         {viewMode === 'info' && (
                             <div className="animate-card max-w-sm mx-auto pt-6 space-y-8 pb-10">
-                                <div className="flex justify-center"><img src="/assets/bismillah-jot1.png" className="h-16 w-auto opacity-80 dark:invert" alt="Bismillah" /></div>
+                                <div className="flex justify-center"><img src="/[public/assets/bismillah-jot1.png" className="h-16 w-auto opacity-80 dark:invert" alt="Bismillah" /></div>
                                 <p className="text-center text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-serif">"Alḥamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
                                 
                                 <div className="space-y-3 font-sans">
