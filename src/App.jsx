@@ -367,7 +367,7 @@ export default function App() {
                       const t = m.timings.jumma.time; const [h, mins] = t.split(':');
                       return (
                           <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] border-emerald-600 mb-1 animate-card cursor-pointer">
-                              <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-emerald-500/30"></i><div><h4 className="font-sans font-bold text-base dark:text-white leading-tight">{m.name}</h4>><p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p></div></div>
+                              <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-emerald-500/30"></i><div><h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>><p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p></div></div>
                               <div className="text-right font-anonymous font-bold text-lg text-emerald-700 dark:text-emerald-400">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
                           </div>
                       );
@@ -393,7 +393,7 @@ export default function App() {
                               const [h, mins] = m.timings[eidKey].time.split(':');
                               return (
                                   <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] border-amber-500 mb-1 animate-card cursor-pointer">
-                                      <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-amber-400"></i><div><h4 className="font-sans font-bold text-lg dark:text-white leading-tight">{m.name}</h4><p className="text-[9px] text-gray-400">{m.area}</p></div></div>
+                                      <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-amber-400"></i><div><h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4><p className="text-[9px] text-gray-400">{m.area}</p></div></div>
                                       <div className="text-right font-anonymous font-bold text-lg dark:text-white">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
                                   </div>
                               );
@@ -418,7 +418,7 @@ export default function App() {
                                       <div className="flex-1 flex items-center gap-2">
                                           <i className="fas fa-mosque text-[10px] text-gray-400"></i>
                                           <div>
-                                              <h4 className="font-sans font-bold text-lg dark:text-white leading-tight">{m.name}</h4>
+                                              <h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>
                                               <p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p>
                                               {taraweehData && <span className="inline-block text-[8px] font-bold text-amber-800 dark:text-amber-100 mt-1 px-1.5 py-0.5 rounded bg-amber-400 dark:bg-amber-600 shadow-sm uppercase font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweehData}</span> P</span>}
                                           </div>
