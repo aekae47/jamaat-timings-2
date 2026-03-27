@@ -367,7 +367,7 @@ export default function App() {
                       const t = m.timings.jumma.time; const [h, mins] = t.split(':');
                       return (
                           <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] border-emerald-600 mb-1 animate-card cursor-pointer">
-                              <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-emerald-500/30"></i><div><h4 className="font-ptsans font-bold text-lg dark:text-white leading-tight">{m.name}</h4><p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p></div></div>
+                              <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-emerald-500/30"></i><div><h4 className="font-sans font-bold text-base dark:text-white leading-tight">{m.name}</h4>><p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p></div></div>
                               <div className="text-right font-anonymous font-bold text-lg text-emerald-700 dark:text-emerald-400">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
                           </div>
                       );
@@ -454,7 +454,7 @@ export default function App() {
                   <div className="flex justify-between items-start mb-3">
                       <div className="cursor-pointer flex items-start gap-3" onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }}>
                           <i className="fas fa-mosque text-brand-500 mt-1"></i>
-                          <div><h2 className="font-ptsans font-bold text-xl text-gray-800 dark:text-white leading-tight">{m.name}</h2><p className="font-bold text-[10px] text-gray-400 font-medium font-sans">{m.area}</p></div>
+                          <div><h2 className="font-sans font-bold text-lg text-gray-800 dark:text-white leading-tight">{m.name}</h2><p className="font-bold text-[10px] text-gray-400 font-medium font-sans">{m.area}</p></div>
                       </div>
                       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1">
                           <button onClick={() => movePersonalOrder(m.id, -1)} className="w-6 h-6 rounded flex items-center justify-center text-xs text-gray-400"><i className="fas fa-chevron-up"></i></button>
@@ -718,6 +718,9 @@ export default function App() {
                                     <div className="flex items-center gap-3 mb-2">
                                         <span className="font-bold text-sm w-20">{p.name}</span>
                                         <input type="time" value={val} onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], time: e.target.value}})} className="flex-1 bg-gray-50 border rounded-xl px-3 py-2 font-anonymous font-bold" />
+                                    <div className="text-[10px] font-anonymous font-bold text-brand-600 mt-1">
+    {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
+</div>
                                     </div>
                                     <div className="flex justify-between pl-[5.5rem] pr-2">
                                         <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase"><input type="checkbox" checked={timingFormData[p.id]?.fixed || false} onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], fixed: e.target.checked}})} /> Same all year</label>
