@@ -29,7 +29,7 @@ const prayersList = [
   { id: 'zuhr', name: 'Ẓuhr', icon: 'fa-sun' },
   { id: 'asr', name: 'Aṣr', icon: 'fa-cloud' },
   { id: 'isha', name: 'Ishā', icon: 'fa-moon' },
-  { id: 'jumma', name: 'Jumma', icon: 'fa-users' }
+  { id: 'jumma', name: 'Jummah', icon: 'fa-users' }
 ];
 const sequenceOrder = ['fajr', 'zuhr', 'asr', 'isha'];
 const specialPrayersList = [
@@ -454,7 +454,7 @@ export default function App() {
                   <div className="flex justify-between items-start mb-3">
                       <div className="cursor-pointer flex items-start gap-3" onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }}>
                           <i className="fas fa-mosque text-brand-500 mt-1"></i>
-                          <div><h2 className="font-sans font-bold text-lg text-gray-800 dark:text-white leading-tight">{m.name}</h2><p className="font-bold text-[10px] text-gray-400 font-medium font-sans">{m.area}</p></div>
+                          <div><h2 className="font-sans font-bold text-base text-gray-800 dark:text-white leading-tight">{m.name}</h2><p className="font-bold text-[10px] text-gray-400 font-medium font-sans">{m.area}</p></div>
                       </div>
                       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1">
                           <button onClick={() => movePersonalOrder(m.id, -1)} className="w-6 h-6 rounded flex items-center justify-center text-xs text-gray-400"><i className="fas fa-chevron-up"></i></button>
