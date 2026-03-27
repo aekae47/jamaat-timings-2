@@ -41,7 +41,24 @@
   <style>
       @import url('https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;700&family=Montserrat:wght@400;500;600;700;800&family=PT+Sans+Narrow:wght@400;700&family=Playfair+Display:wght@700&display=swap');
 
-      html, body, #root { font-family: 'Montserrat', sans-serif !important; }
+      html, body, #root, .font-sans { 
+        font-family: 'Montserrat', sans-serif !important; 
+    }
+
+    /* Force PT Sans Narrow Bold where requested */
+    .font-ptsans { 
+        font-family: 'PT Sans Narrow', sans-serif !important; 
+        font-weight: 700 !important;
+    }
+
+    /* Force Anonymous Pro for numbers */
+    .font-anonymous { 
+        font-family: 'Anonymous Pro', monospace !important; 
+        font-weight: 700 !important;
+    }
+
+    /* Keep Playfair for specific serif needs */
+    .font-serif {
       
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
