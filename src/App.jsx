@@ -558,6 +558,15 @@ export default function App() {
                     </div>
                 </div>
             </div>
+			{installPrompt && (
+    <button 
+        onClick={handleInstallClick}
+        className="w-full mt-4 flex items-center justify-center gap-3 py-4 bg-brand-600 text-white rounded-2xl shadow-lg border-2 border-brand-500 animate-bounce"
+    >
+        <i className="fas fa-download"></i>
+        <span className="text-xs font-bold uppercase tracking-wider">Install App</span>
+    </button>
+)}
         </div>
 
         {/* HEADER */}
