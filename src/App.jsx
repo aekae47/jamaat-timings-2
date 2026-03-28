@@ -20,16 +20,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-const [installPrompt, setInstallPrompt] = useState(null);
-
-useEffect(() => {
-  const handler = (e) => {
-    e.preventDefault();
-    setInstallPrompt(e); // Store the event to trigger later
-  };
-  window.addEventListener('beforeinstallprompt', handler);
-  return () => window.removeEventListener('beforeinstallprompt', handler);
-}, []);
 
 
 enableIndexedDbPersistence(db).catch(() => {});
@@ -66,11 +56,12 @@ const FAQItem = ({ q, a }) => {
 };
 
 export default function App() {
+  const [installPrompt, setInstallPrompt] = useState(null);
   const [viewMode, setViewMode] = useState('next');
   const [currentList, setCurrentList] = useState('Favorites');
   const [searchQuery, setSearchQuery] = useState('');
   const [mosques, setMosques] = useState([]);
-  
+    
   const [appSettings, setAppSettings] = useState({
     ramadan: false, eidFitr: false, eidAdha: false, qiyam: false, lateIsha: false,
     theme: localStorage.getItem('theme') || 'light',
@@ -97,6 +88,16 @@ export default function App() {
   const [newCityInput, setNewCityInput] = useState('');
   const [newListInput, setNewListInput] = useState('');
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '', honeypot: '' });
+  
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e); // Store the event to trigger later
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+  
 
   useEffect(() => {
     const localLists = localStorage.getItem('personalLists');
