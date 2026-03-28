@@ -118,7 +118,7 @@ export default function App() {
 } else {
     // If no local storage exists at all, default to All
     setCurrentList('All');
-}
+
     }
     if (localOrder) setCustomOrder(JSON.parse(localOrder));
 
