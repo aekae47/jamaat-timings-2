@@ -98,6 +98,13 @@ export default function App() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
   
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setInstallPrompt(null);
+  };
+  
 
   useEffect(() => {
     const localLists = localStorage.getItem('personalLists');
@@ -543,16 +550,6 @@ export default function App() {
                             <div key={key} className="flex justify-between items-center"><span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span><input type="checkbox" checked={appSettings[key]} onChange={() => toggleMode(key)} className="accent-brand-600 w-4 h-4"/></div>
                         ))}
                     </div>
-                  {/* Add this inside the sidebar <div>, at the very bottom of the space-y-6 div */}
-{installPrompt && (
-    <button 
-        onClick={handleInstallClick}
-        className="w-full mt-4 flex items-center justify-center gap-3 py-4 bg-brand-600 text-white rounded-2xl shadow-lg border-2 border-brand-500 animate-bounce"
-    >
-        <i className="fas fa-download"></i>
-        <span className="text-xs font-bold uppercase tracking-wider">Install App</span>
-    </button>
-)}
                 </div>
             </div>
         </div>
