@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'assets/*.png'],
       manifest: {
         name: 'Jamaat on Time',
-        short_name: 'JOT',
+        short_name: 'Jamaat on Time',
         description: 'Local Masjid Prayer Timings',
         theme_color: '#0d9488',
         background_color: '#ffffff',
