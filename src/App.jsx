@@ -20,6 +20,17 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+const [installPrompt, setInstallPrompt] = useState(null);
+
+useEffect(() => {
+  const handler = (e) => {
+    e.preventDefault();
+    setInstallPrompt(e); // Store the event to trigger later
+  };
+  window.addEventListener('beforeinstallprompt', handler);
+  return () => window.removeEventListener('beforeinstallprompt', handler);
+}, []);
+
 
 enableIndexedDbPersistence(db).catch(() => {});
 
@@ -367,7 +378,7 @@ export default function App() {
                       const t = m.timings.jumma.time; const [h, mins] = t.split(':');
                       return (
                           <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] border-emerald-600 mb-1 animate-card cursor-pointer">
-                              <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-emerald-500/30"></i><div><h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>><p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p></div></div>
+                              <div className="flex-1 mr-4 flex items-center gap-2"><i className="fas fa-mosque text-[10px] text-emerald-500/30"></i><div><h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4><p className="font-bold text-[9px] text-gray-400 font-medium">{m.area}</p></div></div>
                               <div className="text-right font-anonymous font-bold text-lg text-emerald-700 dark:text-emerald-400">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
                           </div>
                       );
