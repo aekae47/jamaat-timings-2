@@ -112,7 +112,13 @@ export default function App() {
     if (localLists) {
         const parsed = JSON.parse(localLists);
         setPersonalLists(parsed);
-        if (currentList === 'Favorites' && parsed.Favorites.length === 0) setCurrentList('All');
+        if (parsed.Favorites && parsed.Favorites.length === 0) {
+        setCurrentList('All');
+    }
+} else {
+    // If no local storage exists at all, default to All
+    setCurrentList('All');
+}
     }
     if (localOrder) setCustomOrder(JSON.parse(localOrder));
 
