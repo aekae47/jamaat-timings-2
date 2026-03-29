@@ -723,7 +723,9 @@ export default function App() {
                                 const taraweeh = (pid === 'isha' && appSettings.ramadan && selectedMosqueDetail.timings['taraweeh']?.time) ? selectedMosqueDetail.timings['taraweeh'].time : null;
                                 return (
                                     <div key={pid} className={`flex justify-between items-center p-3.5 rounded-xl mb-2 bg-gray-50 border ${!hasTime ? 'opacity-40' : ''}`}>
-                                        <span className="font-bold text-sm text-gray-600 flex items-center gap-2 font-sans"><i className={`fas ${pObj.icon} text-xs w-4`}></i> {pObj.name}</span>
+                                        <span className="font-bold text-sm text-gray-600 flex items-center gap-2 font-sans"><i className={`fas ${pObj.icon} text-xs w-4`}></i> {pObj.name}
+										<span className="font-arabic text-xs opacity-60 ml-1">{pObj.arabic}</span>
+										</span>
                                         <div className="text-right flex flex-col items-end">
                                             <span className={hasTime ? 'font-anonymous text-lg font-bold text-gray-800' : 'text-[10px] text-gray-400 italic'} dangerouslySetInnerHTML={{__html: hasTime ? formatTime12(data.time, pid) : '(Timing not entered)'}}></span>
                                             {taraweeh && <div className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded bg-amber-400 font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweeh}</span> Pārahs</div>}
