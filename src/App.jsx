@@ -26,11 +26,11 @@ enableIndexedDbPersistence(db).catch(() => {});
 
 // --- CONSTANTS ---
 const prayersList = [
-  { id: 'fajr', name: 'Fajr', arabic: 'فجر', icon: 'fa-cloud-sun' },
-  { id: 'zuhr', name: 'Ẓuhr', arabic: 'ظهر', icon: 'fa-sun' },
-  { id: 'asr', name: 'Aṣr', arabic: 'عصر', icon: 'fa-cloud' },
-  { id: 'isha', name: 'Ishā', arabic: 'عشاء', icon: 'fa-moon' },
-  { id: 'jumma', name: 'Jummah', arabic: 'جمعة', icon: 'fa-users' }
+  { id: 'fajr', name: 'Fajr', arabic: 'فَجْرٌ', icon: 'fa-cloud-sun' },
+  { id: 'zuhr', name: 'Ẓuhr', arabic: 'ظُهْرٌ', icon: 'fa-sun' },
+  { id: 'asr', name: 'Aṣr', arabic: 'عَصْرٌ', icon: 'fa-cloud' },
+  { id: 'isha', name: 'Ishā', arabic: 'عِشَاءٌ', icon: 'fa-moon' },
+  { id: 'jumma', name: 'Jummah', arabic: 'جُمُعَةٌ', icon: 'fa-users' }
 ];
 const sequenceOrder = ['fajr', 'zuhr', 'asr', 'isha'];
 const specialPrayersList = [
@@ -617,7 +617,7 @@ export default function App() {
                         {viewMode === 'info' && (
                             <div className="animate-card max-w-sm mx-auto pt-6 space-y-8 pb-10">
                                 <div className="flex justify-center"><img src="assets/bismillah-jot1.png" className="h-16 w-auto opacity-80 dark:invert" alt="Bismillah" /></div>
-                                <p className="text-center text-sm font-ptsans text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-serif">"Alḥamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
+                                <p className="text-center text-sm font-ptsans text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-ptsans">"Alḥamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
                                 
                                 <div className="space-y-3 font-sans">
                                     <h3 className="text-[10px] font-bold uppercase text-gray-400 tracking-widest ml-1">Frequently Asked Questions</h3>
