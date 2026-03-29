@@ -195,15 +195,20 @@ export default function App() {
   };
 
   const getRelativeTime = (iso) => {
-      if(!iso) return '';
-      const updatedDate = new Date(iso);
-      const now = new Date();
-      const updatedDay = new Date(updatedDate.getFullYear(), updatedDate.getMonth(), updatedDate.getDate());
-      const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const diffDays = Math.floor((nowDay - updatedDay) / (1000 * 60 * 60 * 24));
-      if (diffDays === 0) return 'Today';
-      return `${diffDays}d ago`;
-  };
+    if(!iso) return '';
+    const updatedDate = new Date(iso);
+    const now = new Date();
+    
+    // Normalize both to the start of the day to compare dates accurately
+    const updatedDay = new Date(updatedDate.getFullYear(), updatedDate.getMonth(), updatedDate.getDate());
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = nowDay - updatedDay;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    return `${diffDays}d ago`;
+};
 
   const getTimeRemaining = (timeStr, pid = null) => {
       if(!timeStr || pid === 'eidFitr' || pid === 'eidAdha') return '';
@@ -304,20 +309,38 @@ export default function App() {
   };
 
   const saveTimings = async () => {
-      if (userRole !== 'volunteer' && userRole !== 'admin') return;
-      const m = mosques.find(x => x.id === selectedMosqueId); if(!m) return; 
-      let updated = { ...m.timings };
-      const nowISO = new Date().toISOString();
-      [...prayersList, ...specialPrayersList].forEach(p => { 
-          const data = timingFormData[p.id];
-          if(data && data.time) {
-              const updatedDate = data.date ? (data.date + "T00:00:00Z") : nowISO;
-              updated[p.id] = { time: data.time, fixed: data.fixed || false, lastUpdated: updatedDate }; 
-          } else if (data && !data.time) delete updated[p.id];
-      });
-      await updateDoc(doc(db, 'mosques', selectedMosqueId), { timings: updated }); 
-      setActiveModal(null); showToastMsg();
-  };
+    if (userRole !== 'volunteer' && userRole !== 'admin') return;
+    const m = mosques.find(x => x.id === selectedMosqueId);
+    if (!m) return; 
+
+    let updated = { ...m.timings };
+    // Get the exact current time for this update
+    const nowISO = new Date().toISOString();
+
+    [...prayersList, ...specialPrayersList].forEach(p => { 
+        const formData = timingFormData[p.id];
+        
+        if (formData && formData.time) {
+            // Check if the time has actually changed compared to the database
+            const hasTimeChanged = m.timings[p.id]?.time !== formData.time;
+            
+            updated[p.id] = { 
+                time: formData.time, 
+                fixed: formData.fixed || false,
+                // CRITICAL: If the time changed AND it's not fixed, use nowISO.
+                // Otherwise, keep the old lastUpdated date.
+                lastUpdated: (hasTimeChanged && !formData.fixed) ? nowISO : (m.timings[p.id]?.lastUpdated || nowISO)
+            }; 
+        } else if (formData && !formData.time) {
+            delete updated[p.id];
+        }
+    });
+
+    await updateDoc(doc(db, 'mosques', selectedMosqueId), { timings: updated }); 
+    setActiveModal(null); 
+    showToastMsg('Timings Updated');
+};
+
 
   const deleteMosque = async () => { 
       if(window.confirm("Delete this masjid?")) { await deleteDoc(doc(db, 'mosques', selectedMosqueId)); setActiveModal(null); showToastMsg('Deleted'); } 
