@@ -724,7 +724,7 @@ export default function App() {
                                 return (
                                     <div key={pid} className={`flex justify-between items-center p-3.5 rounded-xl mb-2 bg-gray-50 border ${!hasTime ? 'opacity-40' : ''}`}>
                                         <span className="font-bold text-sm text-gray-600 flex items-center gap-2 font-sans"><i className={`fas ${pObj.icon} text-xs w-4`}></i> {pObj.name}
-										<span className="font-arabic text-sm ml-1">{pObj.arabic}</span>
+										<span className="font-arabic text-md ml-1">{pObj.arabic}</span>
 										</span>
                                         <div className="text-right flex flex-col items-end">
                                             <span className={hasTime ? 'font-anonymous text-lg font-bold text-gray-800' : 'text-[10px] text-gray-400 italic'} dangerouslySetInnerHTML={{__html: hasTime ? formatTime12(data.time, pid) : '(Timing not entered)'}}></span>
