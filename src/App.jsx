@@ -26,11 +26,11 @@ enableIndexedDbPersistence(db).catch(() => {});
 
 // --- CONSTANTS ---
 const prayersList = [
-  { id: 'fajr', name: 'Fajr', icon: 'fa-cloud-sun' },
-  { id: 'zuhr', name: 'Ẓuhr', icon: 'fa-sun' },
-  { id: 'asr', name: 'Aṣr', icon: 'fa-cloud' },
-  { id: 'isha', name: 'Ishā', icon: 'fa-moon' },
-  { id: 'jumma', name: 'Jummah', icon: 'fa-users' }
+  { id: 'fajr', name: 'Fajr', arabic: 'فجر', icon: 'fa-cloud-sun' },
+  { id: 'zuhr', name: 'Ẓuhr', arabic: 'ظهر', icon: 'fa-sun' },
+  { id: 'asr', name: 'Aṣr', arabic: 'عصر', icon: 'fa-cloud' },
+  { id: 'isha', name: 'Ishā', arabic: 'عشاء', icon: 'fa-moon' },
+  { id: 'jumma', name: 'Jummah', arabic: 'جمعة', icon: 'fa-users' }
 ];
 const sequenceOrder = ['fajr', 'zuhr', 'asr', 'isha'];
 const specialPrayersList = [
@@ -118,7 +118,7 @@ export default function App() {
 } else {
     // If no local storage exists at all, default to All
     setCurrentList('All');
-}
+
     }
     if (localOrder) setCustomOrder(JSON.parse(localOrder));
 
@@ -433,7 +433,9 @@ export default function App() {
                   const pObj = prayersList.find(p=>p.id===pid);
                   return (
                       <div key={pid}>
-                          <div className="mt-6 mb-2 flex items-center gap-2 px-1"><i className={`fas ${pObj.icon} text-xs ${idx===0?'text-brand-500':'text-gray-400'}`}></i><h3 className={`text-xs font-sans font-bold uppercase tracking-widest ${idx===0?'text-brand-600 dark:text-brand-400':'text-gray-400'}`}>{pObj.name}</h3></div>
+                          <div className="mt-6 mb-2 flex items-center gap-2 px-1"><i className={`fas ${pObj.icon} text-xs ${idx===0?'text-brand-500':'text-gray-400'}`}></i><h3 className={`text-xs font-sans font-bold uppercase tracking-widest ${idx===0?'text-brand-600 dark:text-brand-400':'text-gray-400'}`}>{pObj.name}</h3><span className={`font-arabic opacity-70 ${idx===0?'text-brand-600 dark:text-brand-400':'text-gray-400'}`}>
+        {pObj.arabic}
+    </span></div>
                           {sublist.map(m => {
                               const t = m.timings[pid]; const [h, mins] = t.time.split(':'); 
                               const rem = idx === 0 ? getTimeRemaining(t.time, pid) : ''; const passed = rem === '(Time Passed)';
@@ -558,6 +560,15 @@ export default function App() {
                     </div>
                 </div>
             </div>
+			{installPrompt && (
+    <button 
+        onClick={handleInstallClick}
+        className="w-full mt-4 flex items-center justify-center gap-3 py-4 bg-brand-600 text-white rounded-2xl shadow-lg border-2 border-brand-500 animate-bounce"
+    >
+        <i className="fas fa-download"></i>
+        <span className="text-xs font-bold uppercase tracking-wider">Install App</span>
+    </button>
+)}
         </div>
 
         {/* HEADER */}
@@ -606,7 +617,7 @@ export default function App() {
                         {viewMode === 'info' && (
                             <div className="animate-card max-w-sm mx-auto pt-6 space-y-8 pb-10">
                                 <div className="flex justify-center"><img src="assets/bismillah-jot1.png" className="h-16 w-auto opacity-80 dark:invert" alt="Bismillah" /></div>
-                                <p className="text-center text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-serif">"Alḥamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
+                                <p className="text-center text-sm font-ptsans text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-serif">"Alḥamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
                                 
                                 <div className="space-y-3 font-sans">
                                     <h3 className="text-[10px] font-bold uppercase text-gray-400 tracking-widest ml-1">Frequently Asked Questions</h3>
@@ -618,6 +629,15 @@ export default function App() {
                                 </div>
 
                                 <div className="space-y-3 pt-4 font-sans"> 
+								{installPrompt && (
+    <button 
+        onClick={handleInstallClick}
+        className="flex items-center justify-center gap-3 w-full py-4 bg-brand-600 text-white rounded-2xl shadow-lg mb-4"
+    >
+        <i className="fas fa-mobile-alt text-xl"></i>
+        <span className="text-sm font-bold uppercase tracking-wider">Install App</span>
+    </button>
+)}
                                     <a href="https://chat.whatsapp.com/D5sJdbLNsNGGwzXNW7vNmL" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 w-full py-4 bg-[#075E54] text-white rounded-2xl shadow-lg hover:brightness-110 transition-all"><i className="fab fa-whatsapp text-xl"></i><span className="text-sm font-bold uppercase tracking-wider">Join WhatsApp Group</span></a>
                                     <button onClick={() => setActiveModal('contact')} className="flex items-center justify-center gap-3 w-full py-4 bg-gray-800 text-white rounded-2xl shadow-lg hover:brightness-110 transition-all"><i className="fas fa-envelope text-xl"></i><span className="text-sm font-bold uppercase tracking-wider">Contact Us</span></button>
                                     <a href={`https://wa.me/?text=${encodedMessage}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 w-full py-4 bg-[#25D366] text-white rounded-2xl shadow-lg hover:brightness-110 transition-all"><i className="fab fa-whatsapp text-xl"></i><span className="text-sm font-bold uppercase tracking-wider">Share on WhatsApp</span></a>
