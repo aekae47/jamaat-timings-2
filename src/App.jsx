@@ -847,7 +847,7 @@ const saveTimings = async () => {
           className="space-y-2 cursor-pointer"
           onClick={() => tryAction('edit', () => openEditTiming(selectedMosqueId))}
         >
-          {['fajr', 'zuhr', 'jumma', 'asr', 'isha'].map(pid => {
+          {['fajr', 'zuhr', 'asr', 'isha', 'jumma'].map(pid => {
             const data = selectedMosqueDetail.timings[pid];
             const hasTime = data && data.time;
             const pObj = prayersList.find(p => p.id === pid);
@@ -969,7 +969,7 @@ const saveTimings = async () => {
 
       {/* Header */}
       <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-800">
-        <h3 className="text-lg font-ptsans font-bold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-sans font-bold text-gray-900 dark:text-white">
           {selectedMosqueDetail.name}
         </h3>
         <button
@@ -1004,7 +1004,7 @@ const saveTimings = async () => {
                     <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
                       {p.name}
                     </span>
-                    <span className="font-arabic text-sm text-gray-500 dark:text-gray-400">
+                    <span className="font-arabic text-md text-gray-500 dark:text-gray-400">
                       {p.arabic}
                     </span>
                   </div>
@@ -1153,7 +1153,7 @@ const saveTimings = async () => {
                         {selectedMosqueId && <button onClick={deleteMosque} className="text-red-500 bg-red-50 p-2 rounded-lg"><i className="fas fa-trash-alt text-lg"></i></button>}
                     </div>
                     <div className="space-y-4">
-                        <input type="text" value={mosqueFormData.name} onChange={e=>setMosqueFormData({...mosqueFormData, name: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2 font-ptsans font-bold text-lg" placeholder="Masjid-e-..." />
+                        <input type="text" value={mosqueFormData.name} onChange={e=>setMosqueFormData({...mosqueFormData, name: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2 font-sans font-bold text-lg" placeholder="Masjid-e-..." />
                         <input type="text" value={mosqueFormData.area} onChange={e=>setMosqueFormData({...mosqueFormData, area: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2" placeholder="Area" />
                         <input type="url" value={mosqueFormData.locationLink} onChange={e=>setMosqueFormData({...mosqueFormData, locationLink: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2 text-xs" placeholder="Maps Link" />
                         <textarea value={mosqueFormData.address} onChange={e=>setMosqueFormData({...mosqueFormData, address: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2 text-xs" placeholder="Notes..."></textarea>
