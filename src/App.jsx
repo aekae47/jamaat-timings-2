@@ -433,7 +433,7 @@ export default function App() {
                   const pObj = prayersList.find(p=>p.id===pid);
                   return (
                       <div key={pid}>
-                          <div className="mt-6 mb-2 flex items-center gap-2 px-1"><i className={`fas ${pObj.icon} text-xs ${idx===0?'text-brand-500':'text-gray-400'}`}></i><h3 className={`text-xs font-sans font-bold uppercase tracking-widest ${idx===0?'text-brand-600 dark:text-brand-400':'text-gray-400'}`}>{pObj.name}</h3><span className={`font-arabic opacity-70 ${idx===0?'text-brand-600 dark:text-brand-400':'text-gray-400'}`}>
+                          <div className="mt-6 mb-2 flex items-center gap-2 px-1"><i className={`fas ${pObj.icon} text-xs ${idx===0?'text-brand-500':'text-gray-400'}`}></i><h3 className={`text-xs font-sans font-bold uppercase tracking-widest ${idx===0?'text-brand-600 dark:text-brand-400':'text-gray-400'}`}>{pObj.name} | </h3><span className={`font-arabic ${idx===0?'text-brand-600 dark:text-brand-400':'text-gray-400'}`}>
         {pObj.arabic}
     </span></div>
                           {sublist.map(m => {
@@ -724,7 +724,7 @@ export default function App() {
                                 return (
                                     <div key={pid} className={`flex justify-between items-center p-3.5 rounded-xl mb-2 bg-gray-50 border ${!hasTime ? 'opacity-40' : ''}`}>
                                         <span className="font-bold text-sm text-gray-600 flex items-center gap-2 font-sans"><i className={`fas ${pObj.icon} text-xs w-4`}></i> {pObj.name}
-										<span className="font-arabic text-xs opacity-60 ml-1">{pObj.arabic}</span>
+										<span className="font-arabic text-sm ml-1">{pObj.arabic}</span>
 										</span>
                                         <div className="text-right flex flex-col items-end">
                                             <span className={hasTime ? 'font-anonymous text-lg font-bold text-gray-800' : 'text-[10px] text-gray-400 italic'} dangerouslySetInnerHTML={{__html: hasTime ? formatTime12(data.time, pid) : '(Timing not entered)'}}></span>
