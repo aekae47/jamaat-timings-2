@@ -21,7 +21,6 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-
 enableIndexedDbPersistence(db).catch(() => {});
 
 // --- CONSTANTS ---
@@ -960,72 +959,154 @@ const saveTimings = async () => {
   </div>
 )}
 
-        {/* Timings Edit Modal */}
-        {activeModal === 'timing' && selectedMosqueDetail && (
-            <div onClick={(e) => handleModalClickOutside(e, 'timing')} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl animate-card max-h-[90vh] overflow-y-auto no-scrollbar font-sans">
-                    <div className="flex justify-between items-center mb-5 pb-3 border-b"><h3 className="text-lg font-ptsans font-bold">{selectedMosqueDetail.name}</h3><button onClick={() => setActiveModal(null)} className="text-gray-400"><i className="fas fa-times"></i></button></div>
-                    <div className="space-y-3">
-                        {prayersList.map(p => {
-    const val = timingFormData[p.id]?.time || '';
-    const isFixed = timingFormData[p.id]?.fixed || false;
-    const updateDate = timingFormData[p.id]?.date || new Date().toISOString().split('T')[0];
+{/* Timings Edit Modal */}
+{activeModal === 'timing' && selectedMosqueDetail && (
+  <div
+    onClick={(e) => handleModalClickOutside(e, 'timing')}
+    className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+  >
+    <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm shadow-2xl animate-card max-h-[90vh] overflow-y-auto no-scrollbar font-sans border border-gray-100 dark:border-gray-800">
 
-    return (
-        <div key={p.id} className="border-b dark:border-gray-700 pb-3 mb-3">
-            <div className="flex items-center gap-3 mb-2">
-                <span className="font-bold text-sm w-20 dark:text-gray-300">{p.name}</span>
-                <div className="flex-1">
-                    <input 
-                        type="time" 
-                        value={val} 
-                        onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], time: e.target.value}})} 
-                        className="w-full bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl px-3 py-2 font-anonymous font-bold dark:text-white" 
-                    />
-                    <div className="text-[10px] font-anonymous font-bold text-brand-600 mt-1">
-                        {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
-                    </div>
-                </div>
-            </div>
+      {/* Header */}
+      <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-800">
+        <h3 className="text-lg font-ptsans font-bold text-gray-900 dark:text-white">
+          {selectedMosqueDetail.name}
+        </h3>
+        <button
+          onClick={() => setActiveModal(null)}
+          className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
 
-            <div className="flex justify-between items-center pl-[5.5rem] pr-2">
-                <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase cursor-pointer">
-                    <input 
-                        type="checkbox" 
-                        checked={isFixed} 
-                        onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], fixed: e.target.checked}})} 
-                    /> 
-                    Same all year
+      {/* Content */}
+      <div className="p-5 space-y-4">
+
+        {prayersList.map(p => {
+          const val = timingFormData[p.id]?.time || '';
+          const isFixed = timingFormData[p.id]?.fixed || false;
+          const updateDate = timingFormData[p.id]?.date || new Date().toISOString().split('T')[0];
+
+          return (
+            <div
+              key={p.id}
+              className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4"
+            >
+
+              {/* Prayer Label */}
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
+                  {p.name}
+                </span>
+
+                <span className="font-arabic text-sm text-gray-500 dark:text-gray-400">
+                  {p.arabic}
+                </span>
+              </div>
+
+              {/* Time Input */}
+              <input
+                type="time"
+                value={val}
+                onChange={e =>
+                  setTimingFormData({
+                    ...timingFormData,
+                    [p.id]: {
+                      ...timingFormData[p.id],
+                      time: e.target.value
+                    }
+                  })
+                }
+                className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 font-anonymous font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
+              />
+
+              {/* 12-hour display (clean, no hack needed) */}
+              <div className="text-[11px] font-anonymous font-semibold text-brand-600 dark:text-brand-400 mt-1 tabular-nums">
+                {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
+              </div>
+
+              {/* Controls */}
+              <div className="flex justify-between items-center mt-3">
+
+                {/* Checkbox */}
+                <label className="flex items-center gap-2 text-[10px] font-semibold text-gray-400 uppercase cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isFixed}
+                    onChange={e =>
+                      setTimingFormData({
+                        ...timingFormData,
+                        [p.id]: {
+                          ...timingFormData[p.id],
+                          fixed: e.target.checked
+                        }
+                      })
+                    }
+                  />
+                  Same all year
                 </label>
 
-                <div className="flex items-center gap-3">
-                    {/* Date Edit Icon & Input: Only shows if NOT fixed */}
-                    {!isFixed && (
-                        <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-lg border dark:border-gray-600">
-                            <i className="fas fa-calendar-alt text-[10px] text-gray-400"></i>
-                            <input 
-                                type="date" 
-                                value={updateDate}
-                                onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], date: e.target.value}})}
-                                className="bg-transparent text-[10px] font-bold text-gray-500 dark:text-gray-300 outline-none w-[85px]"
-                            />
-                        </div>
-                    )}
-                    
-                    <div className="flex gap-1">
-                        <button onClick={()=>adjustTimingFormTime(p.id, -5)} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-[10px] dark:text-gray-300">-5</button>
-                        <button onClick={()=>adjustTimingFormTime(p.id, 5)} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-[10px] dark:text-gray-300">+5</button>
+                <div className="flex items-center gap-2">
+
+                  {/* Date */}
+                  {!isFixed && (
+                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <i className="fas fa-calendar-alt text-[10px] text-gray-400"></i>
+                      <input
+                        type="date"
+                        value={updateDate}
+                        onChange={e =>
+                          setTimingFormData({
+                            ...timingFormData,
+                            [p.id]: {
+                              ...timingFormData[p.id],
+                              date: e.target.value
+                            }
+                          })
+                        }
+                        className="bg-transparent text-[10px] font-medium text-gray-600 dark:text-gray-300 outline-none w-[85px]"
+                      />
                     </div>
+                  )}
+
+                  {/* +/- buttons */}
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => adjustTimingFormTime(p.id, -5)}
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    >
+                      -5
+                    </button>
+                    <button
+                      onClick={() => adjustTimingFormTime(p.id, 5)}
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    >
+                      +5
+                    </button>
+                  </div>
+
                 </div>
+              </div>
             </div>
-        </div>
-    );
-})}
-                    </div>
-                    <button onClick={saveTimings} className="w-full mt-6 py-3 bg-brand-600 text-white rounded-xl text-sm font-bold shadow-lg uppercase">Save Timings</button>
-                </div>
-            </div>
-        )}
+          );
+        })}
+
+      </div>
+
+      {/* Footer */}
+      <div className="p-5 border-t border-gray-100 dark:border-gray-800">
+        <button
+          onClick={saveTimings}
+          className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-lg uppercase tracking-wide transition"
+        >
+          Save Timings
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
 
         {/* Info Edit Modal (Add/Edit Mosque Details) */}
         {activeModal === 'info' && (
