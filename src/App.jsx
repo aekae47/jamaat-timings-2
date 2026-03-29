@@ -485,11 +485,38 @@ export default function App() {
                                               {taraweehData && <span className="inline-block text-[8px] font-bold text-amber-800 dark:text-amber-100 mt-1 px-1.5 py-0.5 rounded bg-amber-400 dark:bg-amber-600 shadow-sm uppercase font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweehData}</span> P</span>}
                                           </div>
                                       </div>
-                                      <div className="text-right">
-                                          <div className="font-anonymous font-bold text-lg dark:text-white">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
-                                          {t.lastUpdated && !t.fixed && <div className="font-ptsans font-bold text-[8px] text-gray-400 mt-0.5">{getRelativeTime(t.lastUpdated)}</div>}
-                                          {idx===0 && <div className={`text-[9px] font-bold font-sans ${passed?'text-gray-400':'text-brand-600 bg-brand-50 dark:bg-brand-900/40'} px-2 rounded`}>{rem}</div>}
-                                      </div>
+                                      <div className="text-right flex flex-col items-end leading-none tabular-nums">
+
+  {/* Time */}
+  <div className="font-anonymous font-bold text-lg text-gray-900 dark:text-white tracking-tight">
+    {parseInt(h) % 12 || 12}:{mins}
+    <span className="text-[9px] ml-1 font-sans font-medium text-gray-500 dark:text-gray-400">
+      {h >= 12 ? 'PM' : 'AM'}
+    </span>
+  </div>
+
+  {/* Days ago */}
+  {t.lastUpdated && !t.fixed && (
+    <div className="w-full text-center font-ptsans text-[9px] text-gray-400/80 dark:text-gray-500/80 -mt-1">
+      {getRelativeTime(t.lastUpdated)}
+    </div>
+  )}
+
+  {/* Remaining time badge */}
+  {idx === 0 && (
+    <div
+      className={`mt-1 text-[9px] font-semibold font-sans px-2 py-0.5 rounded-md transition
+      ${
+        passed
+          ? 'text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800'
+          : 'text-brand-700 dark:text-brand-300 bg-brand-100 dark:bg-brand-900/40'
+      }`}
+    >
+      {rem}
+    </div>
+  )}
+
+</div>
                                   </div>
                               );
                           })}
@@ -823,36 +850,40 @@ export default function App() {
                   </span>
                 </span>
 
-                {/* Timing */}
-                <div className="text-right flex flex-col items-end">
-                  <span
-                    className={
-                      hasTime
-                        ? 'font-anonymous text-lg font-bold text-gray-900 dark:text-white'
-                        : 'text-[10px] text-gray-400 dark:text-gray-500 italic'
-                    }
-                    dangerouslySetInnerHTML={{
-                      __html: hasTime
-                        ? formatTime12(data.time, pid)
-                        : '(Timing not entered)'
-                    }}
-                  ></span>
+                <div className="text-right flex flex-col items-end leading-none tabular-nums">
+  
+  {/* Time */}
+  <span
+    className={
+      hasTime
+        ? 'font-anonymous text-lg font-bold text-gray-900 dark:text-white tracking-tight'
+        : 'text-[10px] text-gray-400 dark:text-gray-500 italic'
+    }
+    dangerouslySetInnerHTML={{
+      __html: hasTime
+        ? formatTime12(data.time, pid)
+        : '(Timing not entered)'
+    }}
+  ></span>
 
-{/* ADD THIS BLOCK HERE: Days ago notation */}
+  {/* Days ago */}
   {hasTime && data.lastUpdated && !data.fixed && (
-    <div className="font-ptsans font-bold text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">
+    <div className="w-full text-center font-ptsans text-[9px] text-gray-400/80 dark:text-gray-500/80 -mt-1">
       {getRelativeTime(data.lastUpdated)}
     </div>
   )}
 
-
-                  {taraweeh && (
+{taraweeh && (
                     <div className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded bg-amber-400/90 dark:bg-amber-500 text-black font-sans">
                       Tarāweeḥ:
                       <span className="font-anonymous ml-1">{taraweeh}</span> Pārahs
                     </div>
                   )}
-                </div>
+
+
+</div>
+
+
               </div>
             );
           })}
