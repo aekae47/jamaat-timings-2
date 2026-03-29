@@ -617,7 +617,7 @@ export default function App() {
                         {viewMode === 'info' && (
                             <div className="animate-card max-w-sm mx-auto pt-6 space-y-8 pb-10">
                                 <div className="flex justify-center"><img src="assets/bismillah-jot1.png" className="h-16 w-auto opacity-80 dark:invert" alt="Bismillah" /></div>
-                                <p className="text-center text-sm font-ptsans text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-ptsans">"Alḥamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
+                                <p className="text-center text-sm font-ptsans text-gray-600 dark:text-gray-300 leading-relaxed italic px-2 font-ptsans">"Alhamdulillāh, Allāh ﷻ has given us this opportunity to be of some use to the Ummah, by creating this tool. Our sole intention is to help our brethren to be more punctual in their jamāʿah prayers."</p>
                                 
                                 <div className="space-y-3 font-sans">
                                     <h3 className="text-[10px] font-bold uppercase text-gray-400 tracking-widest ml-1">Frequently Asked Questions</h3>
@@ -723,9 +723,9 @@ export default function App() {
                                 const taraweeh = (pid === 'isha' && appSettings.ramadan && selectedMosqueDetail.timings['taraweeh']?.time) ? selectedMosqueDetail.timings['taraweeh'].time : null;
                                 return (
                                     <div key={pid} className={`flex justify-between items-center p-3.5 rounded-xl mb-2 bg-gray-50 border ${!hasTime ? 'opacity-40' : ''}`}>
-                                        <span className="font-bold text-sm text-gray-600 flex items-center gap-2 font-sans"><i className={`fas ${pObj.icon} text-xs w-4`}></i> {pObj.name} | 
-										<span className="font-arabic text-md text-gray-600 ml-1">{pObj.arabic}</span>
+                                        <span className="font-bold text-sm text-gray-600 flex items-center gap-2 font-sans"><i className={`fas ${pObj.icon} text-xs w-4`}></i> {pObj.name}
 										</span>
+										<span className="font-arabic text-md text-gray-600 ml-1"> | {pObj.arabic}</span>
                                         <div className="text-right flex flex-col items-end">
                                             <span className={hasTime ? 'font-anonymous text-lg font-bold text-gray-800' : 'text-[10px] text-gray-400 italic'} dangerouslySetInnerHTML={{__html: hasTime ? formatTime12(data.time, pid) : '(Timing not entered)'}}></span>
                                             {taraweeh && <div className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded bg-amber-400 font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweeh}</span> Pārahs</div>}
