@@ -838,6 +838,14 @@ export default function App() {
                     }}
                   ></span>
 
+{/* ADD THIS BLOCK HERE: Days ago notation */}
+  {hasTime && data.lastUpdated && !data.fixed && (
+    <div className="font-ptsans font-bold text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">
+      {getRelativeTime(data.lastUpdated)}
+    </div>
+  )}
+
+
                   {taraweeh && (
                     <div className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded bg-amber-400/90 dark:bg-amber-500 text-black font-sans">
                       Tarāweeḥ:
