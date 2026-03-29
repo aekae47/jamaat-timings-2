@@ -980,119 +980,155 @@ const saveTimings = async () => {
         </button>
       </div>
 
-      {/* Content */}
-      <div className="p-5 space-y-4">
+      {/* Helper */}
+      {(() => {
+        const getToday = () => new Date().toISOString().split('T')[0];
 
-        {prayersList.map(p => {
-          const val = timingFormData[p.id]?.time || '';
-          const isFixed = timingFormData[p.id]?.fixed || false;
-          const updateDate = timingFormData[p.id]?.date || new Date().toISOString().split('T')[0];
+        return (
+          <div className="p-5 space-y-4">
 
-          return (
-            <div
-              key={p.id}
-              className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4"
-            >
+            {prayersList.map(p => {
+              const val = timingFormData[p.id]?.time || '';
+              const isFixed = timingFormData[p.id]?.fixed || false;
+              const updateDate =
+                timingFormData[p.id]?.date || getToday();
 
-              {/* Prayer Label */}
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
-                  {p.name}
-                </span>
+              return (
+                <div
+                  key={p.id}
+                  className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4"
+                >
 
-                <span className="font-arabic text-sm text-gray-500 dark:text-gray-400">
-                  {p.arabic}
-                </span>
-              </div>
+                  {/* Prayer Label */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
+                      {p.name}
+                    </span>
+                    <span className="font-arabic text-sm text-gray-500 dark:text-gray-400">
+                      {p.arabic}
+                    </span>
+                  </div>
 
-              {/* Time Input */}
-              <input
-                type="time"
-                value={val}
-                onChange={e =>
-                  setTimingFormData({
-                    ...timingFormData,
-                    [p.id]: {
-                      ...timingFormData[p.id],
-                      time: e.target.value
-                    }
-                  })
-                }
-                className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 font-anonymous font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
-              />
-
-              {/* 12-hour display (clean, no hack needed) */}
-              <div className="text-[11px] font-anonymous font-semibold text-brand-600 dark:text-brand-400 mt-1 tabular-nums">
-                {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
-              </div>
-
-              {/* Controls */}
-              <div className="flex justify-between items-center mt-3">
-
-                {/* Checkbox */}
-                <label className="flex items-center gap-2 text-[10px] font-semibold text-gray-400 uppercase cursor-pointer">
+                  {/* Time Input */}
                   <input
-                    type="checkbox"
-                    checked={isFixed}
+                    type="time"
+                    value={val}
                     onChange={e =>
                       setTimingFormData({
                         ...timingFormData,
                         [p.id]: {
                           ...timingFormData[p.id],
-                          fixed: e.target.checked
+                          time: e.target.value,
+                          date: getToday() // ✅ force today
                         }
                       })
                     }
+                    className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 font-anonymous font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
                   />
-                  Same all year
-                </label>
 
-                <div className="flex items-center gap-2">
+                  {/* 12-hour display */}
+                  <div className="text-[11px] font-anonymous font-semibold text-brand-600 dark:text-brand-400 mt-1 tabular-nums">
+                    {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
+                  </div>
 
-                  {/* Date */}
-                  {!isFixed && (
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
-                      <i className="fas fa-calendar-alt text-[10px] text-gray-400"></i>
+                  {/* Controls */}
+                  <div className="flex justify-between items-center mt-3">
+
+                    {/* Checkbox */}
+                    <label className="flex items-center gap-2 text-[10px] font-semibold text-gray-400 uppercase cursor-pointer">
                       <input
-                        type="date"
-                        value={updateDate}
+                        type="checkbox"
+                        checked={isFixed}
                         onChange={e =>
                           setTimingFormData({
                             ...timingFormData,
                             [p.id]: {
                               ...timingFormData[p.id],
-                              date: e.target.value
+                              fixed: e.target.checked
                             }
                           })
                         }
-                        className="bg-transparent text-[10px] font-medium text-gray-600 dark:text-gray-300 outline-none w-[85px]"
                       />
+                      Same all year
+                    </label>
+
+                    <div className="flex items-center gap-2">
+
+                      {/* Date */}
+                      {!isFixed && (
+                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
+                          <i className="fas fa-calendar-alt text-[10px] text-gray-400"></i>
+                          <input
+                            type="date"
+                            value={updateDate}
+                            onFocus={e => {
+                              // ✅ when user taps date → default to today
+                              setTimingFormData({
+                                ...timingFormData,
+                                [p.id]: {
+                                  ...timingFormData[p.id],
+                                  date: getToday()
+                                }
+                              });
+                            }}
+                            onChange={e =>
+                              setTimingFormData({
+                                ...timingFormData,
+                                [p.id]: {
+                                  ...timingFormData[p.id],
+                                  date: e.target.value || getToday()
+                                }
+                              })
+                            }
+                            className="bg-transparent text-[10px] font-medium text-gray-600 dark:text-gray-300 outline-none w-[85px]"
+                          />
+                        </div>
+                      )}
+
+                      {/* +/- buttons */}
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => {
+                            adjustTimingFormTime(p.id, -5);
+                            setTimingFormData(prev => ({
+                              ...prev,
+                              [p.id]: {
+                                ...prev[p.id],
+                                date: getToday() // ✅ force today
+                              }
+                            }));
+                          }}
+                          className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        >
+                          -5
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            adjustTimingFormTime(p.id, 5);
+                            setTimingFormData(prev => ({
+                              ...prev,
+                              [p.id]: {
+                                ...prev[p.id],
+                                date: getToday() // ✅ force today
+                              }
+                            }));
+                          }}
+                          className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        >
+                          +5
+                        </button>
+                      </div>
+
                     </div>
-                  )}
-
-                  {/* +/- buttons */}
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => adjustTimingFormTime(p.id, -5)}
-                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                      -5
-                    </button>
-                    <button
-                      onClick={() => adjustTimingFormTime(p.id, 5)}
-                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                      +5
-                    </button>
                   </div>
-
                 </div>
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
 
-      </div>
+          </div>
+        );
+      })()}
 
       {/* Footer */}
       <div className="p-5 border-t border-gray-100 dark:border-gray-800">
