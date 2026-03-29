@@ -644,8 +644,22 @@ export default function App() {
             {viewMode === 'next' && (
                 <div className="w-full pb-2">
                     <div className="flex flex-col items-center justify-center py-1 cursor-pointer" onClick={() => setActiveModal('city')}>
-                        <div className="text-4xl font-anonymous font-bold text-gray-800 dark:text-white tracking-tighter leading-none flex items-baseline gap-1" dangerouslySetInnerHTML={{__html: currentTimeDisplay}}></div>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-gray-400 dark:text-gray-500 font-sans"><i className="fas fa-map-marker-alt text-[9px]"></i><span className="text-[10px] font-bold uppercase tracking-[0.2em]">{appSettings.city.toUpperCase()}</span></div>
+{(() => {
+  const date = new Date();
+  let h = date.getHours();
+  const mins = String(date.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+
+  return (
+    <div className="text-4xl font-anonymous font-bold text-gray-800 dark:text-white tracking-tight leading-none flex items-baseline tabular-nums">
+      <span>{h}:{mins}</span>
+      <span className="font-sans font-medium text-sm text-gray-500 dark:text-gray-400 ml-1">
+        {ampm}
+      </span>
+    </div>
+  );
+})()}                        <div className="flex items-center gap-1.5 mt-0.5 text-gray-400 dark:text-gray-500 font-sans"><i className="fas fa-map-marker-alt text-[9px]"></i><span className="text-[10px] font-bold uppercase tracking-[0.2em]">{appSettings.city.toUpperCase()}</span></div>
                         {isFriday && <div className="mt-1 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-3 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-[0.15em] border border-emerald-100 dark:border-emerald-800/50 shadow-sm mx-auto w-fit font-sans">It's Friday! ✨</div>}
                     </div>
                 </div>
