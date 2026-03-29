@@ -308,37 +308,33 @@ export default function App() {
       if(goToTimings) openEditTiming(savedId); else setActiveModal(null);
   };
 
-  const saveTimings = async () => {
+const saveTimings = async () => {
     if (userRole !== 'volunteer' && userRole !== 'admin') return;
     const m = mosques.find(x => x.id === selectedMosqueId);
     if (!m) return; 
 
     let updated = { ...m.timings };
-    // Get the exact current time for this update
     const nowISO = new Date().toISOString();
 
     [...prayersList, ...specialPrayersList].forEach(p => { 
         const formData = timingFormData[p.id];
         
         if (formData && formData.time) {
-            // Check if the time has actually changed compared to the database
-            const hasTimeChanged = m.timings[p.id]?.time !== formData.time;
-            
+            // If user chose a custom date, use that. Otherwise, use today.
+            // We add T12:00:00Z to ensure it's treated as a full date in UTC
+            const finalDate = formData.date ? new Date(formData.date).toISOString() : nowISO;
+
             updated[p.id] = { 
                 time: formData.time, 
                 fixed: formData.fixed || false,
-                // CRITICAL: If the time changed AND it's not fixed, use nowISO.
-                // Otherwise, keep the old lastUpdated date.
-                lastUpdated: (hasTimeChanged && !formData.fixed) ? nowISO : (m.timings[p.id]?.lastUpdated || nowISO)
+                lastUpdated: formData.fixed ? null : finalDate
             }; 
-        } else if (formData && !formData.time) {
-            delete updated[p.id];
         }
     });
 
     await updateDoc(doc(db, 'mosques', selectedMosqueId), { timings: updated }); 
     setActiveModal(null); 
-    showToastMsg('Timings Updated');
+    showToastMsg('Saved');
 };
 
 
@@ -971,23 +967,60 @@ export default function App() {
                     <div className="flex justify-between items-center mb-5 pb-3 border-b"><h3 className="text-lg font-ptsans font-bold">{selectedMosqueDetail.name}</h3><button onClick={() => setActiveModal(null)} className="text-gray-400"><i className="fas fa-times"></i></button></div>
                     <div className="space-y-3">
                         {prayersList.map(p => {
-                            const val = timingFormData[p.id]?.time || '';
-                            return (
-                                <div key={p.id} className="border-b pb-3 mb-3">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="font-bold text-sm w-20">{p.name}</span>
-                                        <input type="time" value={val} onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], time: e.target.value}})} className="flex-1 bg-gray-50 border rounded-xl px-3 py-2 font-anonymous font-bold" />
-                                    <div className="text-[10px] font-anonymous font-bold text-brand-600 mt-1">
-    {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
-</div>
-                                    </div>
-                                    <div className="flex justify-between pl-[5.5rem] pr-2">
-                                        <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase"><input type="checkbox" checked={timingFormData[p.id]?.fixed || false} onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], fixed: e.target.checked}})} /> Same all year</label>
-                                        <div className="flex gap-2"><button onClick={()=>adjustTimingFormTime(p.id, -5)} className="px-2 py-1 bg-gray-100 rounded text-[10px]">-5</button><button onClick={()=>adjustTimingFormTime(p.id, 5)} className="px-2 py-1 bg-gray-100 rounded text-[10px]">+5</button></div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+    const val = timingFormData[p.id]?.time || '';
+    const isFixed = timingFormData[p.id]?.fixed || false;
+    const updateDate = timingFormData[p.id]?.date || new Date().toISOString().split('T')[0];
+
+    return (
+        <div key={p.id} className="border-b dark:border-gray-700 pb-3 mb-3">
+            <div className="flex items-center gap-3 mb-2">
+                <span className="font-bold text-sm w-20 dark:text-gray-300">{p.name}</span>
+                <div className="flex-1">
+                    <input 
+                        type="time" 
+                        value={val} 
+                        onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], time: e.target.value}})} 
+                        className="w-full bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl px-3 py-2 font-anonymous font-bold dark:text-white" 
+                    />
+                    <div className="text-[10px] font-anonymous font-bold text-brand-600 mt-1">
+                        {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex justify-between items-center pl-[5.5rem] pr-2">
+                <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        checked={isFixed} 
+                        onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], fixed: e.target.checked}})} 
+                    /> 
+                    Same all year
+                </label>
+
+                <div className="flex items-center gap-3">
+                    {/* Date Edit Icon & Input: Only shows if NOT fixed */}
+                    {!isFixed && (
+                        <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-lg border dark:border-gray-600">
+                            <i className="fas fa-calendar-alt text-[10px] text-gray-400"></i>
+                            <input 
+                                type="date" 
+                                value={updateDate}
+                                onChange={e => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], date: e.target.value}})}
+                                className="bg-transparent text-[10px] font-bold text-gray-500 dark:text-gray-300 outline-none w-[85px]"
+                            />
+                        </div>
+                    )}
+                    
+                    <div className="flex gap-1">
+                        <button onClick={()=>adjustTimingFormTime(p.id, -5)} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-[10px] dark:text-gray-300">-5</button>
+                        <button onClick={()=>adjustTimingFormTime(p.id, 5)} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-[10px] dark:text-gray-300">+5</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+})}
                     </div>
                     <button onClick={saveTimings} className="w-full mt-6 py-3 bg-brand-600 text-white rounded-xl text-sm font-bold shadow-lg uppercase">Save Timings</button>
                 </div>
