@@ -740,67 +740,153 @@ export default function App() {
             </div>
         )}
 
-        {/* Detail Modal */}
-        {activeModal === 'detail' && selectedMosqueDetail && (
-            <div onClick={(e) => handleModalClickOutside(e, 'detail')} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm max-h-[85vh] shadow-2xl flex flex-col animate-card overflow-hidden">
-                    <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 flex justify-between items-start">
-                        <div className="flex items-start gap-3"><i className="fas fa-mosque text-brand-600 text-xl mt-1"></i><div><h2 className="text-xl font-sans font-bold dark:text-white leading-tight">{selectedMosqueDetail.name}</h2><p className="text-xs font-bold text-gray-500 mt-1 font-sans">{selectedMosqueDetail.area}</p></div></div>
-                        <div className="flex gap-2">
-                            {(userRole==='admin'||userRole==='volunteer') && <button onClick={() => tryAction('edit', () => openMosqueModal(selectedMosqueId))} className="w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center hover:bg-brand-100"><i className="fas fa-pencil-alt text-xs"></i></button>}
-                            <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200"><i className="fas fa-times"></i></button>
-                        </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-5 font-sans">
-                        <div className="space-y-2 cursor-pointer" onClick={() => tryAction('edit', () => openEditTiming(selectedMosqueId))}>
-                            {['fajr', 'zuhr', 'jumma', 'asr', 'isha'].map(pid => {
-                                const data = selectedMosqueDetail.timings[pid]; const hasTime = data && data.time; const pObj = prayersList.find(p => p.id === pid);
-                                const taraweeh = (pid === 'isha' && appSettings.ramadan && selectedMosqueDetail.timings['taraweeh']?.time) ? selectedMosqueDetail.timings['taraweeh'].time : null;
-                                return (
-                                    <div key={pid} className={`flex justify-between items-center p-3.5 rounded-xl mb-2 bg-gray-50 border ${!hasTime ? 'opacity-40' : ''}`}>
-                                        <span className="flex items-center" dir="ltr">
-  <span
-    className="font-bold text-sm text-gray-700 dark:text-gray-300 font-sans flex items-center gap-1.5"
-    dir="ltr"
+{/* Detail Modal */}
+{activeModal === 'detail' && selectedMosqueDetail && (
+  <div
+    onClick={(e) => handleModalClickOutside(e, 'detail')}
+    className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
   >
-    <i className={`fas ${pObj.icon} text-xs w-4 text-gray-500 dark:text-gray-400`}></i>
-    {pObj.name}
-  </span>
+    <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm max-h-[85vh] shadow-2xl flex flex-col animate-card overflow-hidden border border-gray-100 dark:border-gray-800">
 
-  <span className="mx-2 h-4 w-px bg-gray-300 dark:bg-gray-600"></span>
+      {/* Header */}
+      <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900 flex justify-between items-start">
+        <div className="flex items-start gap-3">
+          <i className="fas fa-mosque text-brand-600 text-xl mt-1"></i>
+          <div>
+            <h2 className="text-xl font-sans font-bold text-gray-900 dark:text-white leading-tight">
+              {selectedMosqueDetail.name}
+            </h2>
+            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1 font-sans">
+              {selectedMosqueDetail.area}
+            </p>
+          </div>
+        </div>
 
-  <span
-    className="font-arabic text-md text-gray-700 dark:text-gray-300 tracking-wide"
-    dir="rtl"
-  >
-    {pObj.arabic}
-  </span>
-</span>
-                                        <div className="text-right flex flex-col items-end">
-                                            <span className={hasTime ? 'font-anonymous text-lg font-bold text-gray-800' : 'text-[10px] text-gray-400 italic'} dangerouslySetInnerHTML={{__html: hasTime ? formatTime12(data.time, pid) : '(Timing not entered)'}}></span>
-                                            {taraweeh && <div className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded bg-amber-400 font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweeh}</span> Pārahs</div>}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        
-                        {/* Notes Section Added Here */}
-                        {selectedMosqueDetail.address && (
-                            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border border-gray-100 dark:border-gray-600 mt-4 mb-2">
-                                <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Notes</h4>
-                                <p className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">{selectedMosqueDetail.address}</p>
-                            </div>
-                        )}
-                        
-                    </div>
-                    <div className="p-4 border-t border-gray-100 space-y-2 font-sans">
-                        <button onClick={() => setActiveModal('personalList')} className="flex items-center justify-center w-full bg-gray-100 font-bold py-3 rounded-xl hover:bg-gray-200"><i className="fas fa-heart mr-2 text-red-500"></i> Add to Favorites</button>
-                        {selectedMosqueDetail.locationLink && <a href={selectedMosqueDetail.locationLink} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg"><i className="fas fa-location-arrow mr-2"></i> Directions</a>}
-                    </div>
-                </div>
-            </div>
-        )}
+        <div className="flex gap-2">
+          {(userRole === 'admin' || userRole === 'volunteer') && (
+            <button
+              onClick={() => tryAction('edit', () => openMosqueModal(selectedMosqueId))}
+              className="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center hover:bg-brand-100 dark:hover:bg-brand-800"
+            >
+              <i className="fas fa-pencil-alt text-xs"></i>
+            </button>
+          )}
+
+          <button
+            onClick={() => setActiveModal(null)}
+            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-5 font-sans">
+
+        <div
+          className="space-y-2 cursor-pointer"
+          onClick={() => tryAction('edit', () => openEditTiming(selectedMosqueId))}
+        >
+          {['fajr', 'zuhr', 'jumma', 'asr', 'isha'].map(pid => {
+            const data = selectedMosqueDetail.timings[pid];
+            const hasTime = data && data.time;
+            const pObj = prayersList.find(p => p.id === pid);
+
+            const taraweeh =
+              (pid === 'isha' &&
+                appSettings.ramadan &&
+                selectedMosqueDetail.timings['taraweeh']?.time)
+                ? selectedMosqueDetail.timings['taraweeh'].time
+                : null;
+
+            return (
+              <div
+                key={pid}
+                className={`flex justify-between items-center p-3.5 rounded-xl mb-2 border transition
+                ${!hasTime ? 'opacity-40' : ''}
+                bg-gray-50 dark:bg-gray-800
+                border-gray-100 dark:border-gray-700`}
+              >
+
+                {/* Prayer Name */}
+                <span className="flex items-center" dir="ltr">
+                  <span className="font-bold text-sm text-gray-700 dark:text-gray-300 font-sans flex items-center gap-1.5">
+                    <i className={`fas ${pObj.icon} text-xs w-4 text-gray-500 dark:text-gray-400`}></i>
+                    {pObj.name}
+                  </span>
+
+                  <span className="mx-2 h-4 w-px bg-gray-300 dark:bg-gray-600"></span>
+
+                  <span className="font-arabic text-md text-gray-700 dark:text-gray-300 tracking-wide" dir="rtl">
+                    {pObj.arabic}
+                  </span>
+                </span>
+
+                {/* Timing */}
+                <div className="text-right flex flex-col items-end">
+                  <span
+                    className={
+                      hasTime
+                        ? 'font-anonymous text-lg font-bold text-gray-900 dark:text-white'
+                        : 'text-[10px] text-gray-400 dark:text-gray-500 italic'
+                    }
+                    dangerouslySetInnerHTML={{
+                      __html: hasTime
+                        ? formatTime12(data.time, pid)
+                        : '(Timing not entered)'
+                    }}
+                  ></span>
+
+                  {taraweeh && (
+                    <div className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded bg-amber-400/90 dark:bg-amber-500 text-black font-sans">
+                      Tarāweeḥ:
+                      <span className="font-anonymous ml-1">{taraweeh}</span> Pārahs
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Notes */}
+        {selectedMosqueDetail.address && (
+          <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-4 border border-gray-100 dark:border-gray-700 mt-4 mb-2">
+            <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-2 tracking-wider">
+              Notes
+            </h4>
+            <p className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+              {selectedMosqueDetail.address}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2 font-sans">
+
+        <button className="flex items-center justify-center w-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+          <i className="fas fa-heart mr-2 text-red-500"></i>
+          Add to Favorites
+        </button>
+
+        {selectedMosqueDetail.locationLink && (
+          <a
+            href={selectedMosqueDetail.locationLink}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-lg transition"
+          >
+            <i className="fas fa-location-arrow mr-2"></i>
+            Directions
+          </a>
+        )}
+      </div>
+
+    </div>
+  </div>
+)}
 
         {/* Timings Edit Modal */}
         {activeModal === 'timing' && selectedMosqueDetail && (
