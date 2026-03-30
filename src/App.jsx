@@ -479,7 +479,7 @@ const saveTimings = async () => {
   ></span>
 
   <span
-    className={`font-arabic text-md font-bold ${
+    className={`font-arabic text-md ${
       idx === 0
         ? "text-brand-600 dark:text-brand-400"
         : "text-gray-400"
@@ -877,7 +877,7 @@ const saveTimings = async () => {
 
                   <span className="mx-2 h-4 w-px bg-gray-300 dark:bg-gray-600"></span>
 
-                  <span className="font-arabic text-md text-gray-700 dark:text-gray-300 tracking-wide" dir="rtl">
+                  <span className="font-arabic text-sm font-bold text-gray-700 dark:text-gray-300 tracking-wide" dir="rtl">
                     {pObj.arabic}
                   </span>
                 </span>
