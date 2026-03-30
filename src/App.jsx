@@ -98,10 +98,6 @@ export default function App() {
   }, []);
   
   const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') setInstallPrompt(null);
   };
   
 
@@ -629,8 +625,52 @@ const saveTimings = async () => {
             <h2 className="text-2xl font-serif font-bold mb-1 text-brand-600 dark:text-brand-400">Settings</h2>
             <p className="text-xs text-gray-400 mb-8 uppercase tracking-widest font-sans">Preferences</p>
             <div className="space-y-6 flex-1">
-                <div className="flex items-center justify-between"><span className="font-bold text-sm font-sans">Dark Mode</span><div className="relative inline-block w-10 align-middle select-none"><input type="checkbox" id="theme_toggle" checked={appSettings.theme === 'dark'} onChange={toggleTheme} className="toggle-checkbox absolute block rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300"/><label htmlFor="theme_toggle" className="toggle-label block overflow-hidden rounded-full bg-gray-300 cursor-pointer"></label></div></div>
-                <hr className="border-gray-100 dark:border-gray-700" />
+<div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 flex items-center justify-between">
+
+  {/* Left side */}
+  <div className="flex items-center gap-3">
+    <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-200 dark:bg-gray-700 transition">
+      <i
+        className={`fas ${
+          appSettings.theme === 'dark' ? 'fa-moon' : 'fa-sun'
+        } text-gray-700 dark:text-gray-300`}
+      ></i>
+    </div>
+
+    <div>
+      <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+        Dark Mode
+      </div>
+      <div className="text-[11px] text-gray-400 dark:text-gray-500">
+        Switch between light and dark theme
+      </div>
+    </div>
+  </div>
+
+  {/* Toggle */}
+  <button
+    onClick={toggleTheme}
+    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300
+    ${
+      appSettings.theme === 'dark'
+        ? 'bg-brand-600 shadow-inner'
+        : 'bg-gray-300 dark:bg-gray-600'
+    }
+    active:scale-95 active:brightness-95`}
+  >
+    {/* Knob */}
+    <span
+      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-all duration-300
+      ${
+        appSettings.theme === 'dark'
+          ? 'translate-x-6'
+          : 'translate-x-1'
+      }`}
+    />
+  </button>
+
+</div>
+  <hr className="border-gray-100 dark:border-gray-700" />
                 <div className={userRole !== 'admin' ? 'restricted' : ''}>
                     <h3 className="text-[10px] font-bold uppercase text-gray-400 mb-4 tracking-wider flex justify-between items-center font-sans">Seasonal Visibility <i className="fas fa-lock text-[9px] opacity-30"></i></h3>
                     <div className="space-y-4 text-sm font-medium font-sans">
