@@ -641,9 +641,7 @@ const saveTimings = async () => {
       <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">
         Dark Mode
       </div>
-      <div className="text-[11px] text-gray-400 dark:text-gray-500">
-        Switch between light and dark theme
-      </div>
+      
     </div>
   </div>
 
