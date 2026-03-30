@@ -1042,7 +1042,7 @@ const saveTimings = async () => {
                     <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
                       {p.name}
                     </span>
-                    <span className="font-arabic text-md text-gray-800 dark:text-gray-200">
+                    <span className="font-arabic text-md font-bold text-gray-800 dark:text-gray-200">
                       {p.arabic}
                     </span>
                   </div>
