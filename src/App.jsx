@@ -1001,186 +1001,160 @@ const saveTimings = async () => {
 {activeModal === 'timing' && selectedMosqueDetail && (
   <div
     onClick={(e) => handleModalClickOutside(e, 'timing')}
-    className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
   >
-    <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm shadow-2xl animate-card max-h-[90vh] overflow-y-auto no-scrollbar font-sans border border-gray-100 dark:border-gray-800">
-
-      {/* Header */}
-      <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-800">
-        <h3 className="text-lg font-sans font-bold text-gray-900 dark:text-white">
-          {selectedMosqueDetail.name}
-        </h3>
+    <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-sm shadow-2xl animate-card max-h-[90vh] flex flex-col overflow-hidden border border-gray-100 dark:border-gray-800">
+      
+      {/* Header - Slimmer */}
+      <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+        <div>
+          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Edit Timings</h3>
+          <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+            {selectedMosqueDetail.name}
+          </p>
+        </div>
         <button
           onClick={() => setActiveModal(null)}
-          className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700"
+          className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors"
         >
           <i className="fas fa-times"></i>
         </button>
       </div>
 
-      {/* Helper */}
-      {(() => {
-        const getToday = () => new Date().toISOString().split('T')[0];
+      {/* Scrollable Content */}
+      <div className="p-4 space-y-3 overflow-y-auto no-scrollbar">
+        {(() => {
+          const getToday = () => new Date().toISOString().split('T')[0];
 
-        return (
-          <div className="p-5 space-y-4">
+          return prayersList.map((p) => {
+            const val = timingFormData[p.id]?.time || '';
+            const isFixed = timingFormData[p.id]?.fixed || false;
+            const updateDate = timingFormData[p.id]?.date || getToday();
 
-            {prayersList.map(p => {
-              const val = timingFormData[p.id]?.time || '';
-              const isFixed = timingFormData[p.id]?.fixed || false;
-              const updateDate =
-                timingFormData[p.id]?.date || getToday();
+            return (
+              <div
+                key={p.id}
+                className="relative group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-3 shadow-sm hover:border-brand-500/50 transition-all"
+              >
+                {/* Top Row: Prayer Names */}
+                <div className="flex justify-between items-center mb-3 px-1">
+                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-tight">
+                    {p.name}
+                  </span>
+                  <span className="text-lg font-arabic text-brand-600 dark:text-brand-400">
+                    {p.arabic}
+                  </span>
+                </div>
 
-              return (
-                <div
-                  key={p.id}
-                  className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4"
-                >
+                {/* Middle Row: The Interactive Time Stepper */}
+                <div className="flex items-center justify-between gap-2">
+                  
+                  {/* Minus 5 Button */}
+                  <button
+                    onClick={() => {
+                      adjustTimingFormTime(p.id, -5);
+                      setTimingFormData(prev => ({ ...prev, [p.id]: { ...prev[p.id], date: getToday() } }));
+                    }}
+                    className="h-11 w-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 active:scale-95 transition-transform"
+                  >
+                    <span className="text-xs font-bold">-5</span>
+                  </button>
 
-                  {/* Prayer Label */}
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
-                      {p.name}
+                  {/* Central Time Display + Hidden Input */}
+                  <div className="relative flex-1 h-11 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700 flex items-center justify-center overflow-hidden">
+                    {/* The 12-hour formatted text */}
+                    <span className="text-xl font-anonymous font-bold text-gray-900 dark:text-white tabular-nums">
+                      {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
                     </span>
-                    <span className="font-arabic text-md font-bold text-gray-800 dark:text-gray-200">
-                      {p.arabic}
-                    </span>
+                    
+                    {/* The Hidden Input Overlay */}
+                    <input
+                      type="time"
+                      value={val}
+                      onChange={(e) =>
+                        setTimingFormData({
+                          ...timingFormData,
+                          [p.id]: {
+                            ...timingFormData[p.id],
+                            time: e.target.value,
+                            date: getToday(),
+                          },
+                        })
+                      }
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                    />
                   </div>
 
-                  {/* Time Input */}
-                  <input
-                    type="time"
-                    value={val}
-                    onChange={e =>
-                      setTimingFormData({
-                        ...timingFormData,
-                        [p.id]: {
-                          ...timingFormData[p.id],
-                          time: e.target.value,
-                          date: getToday() // ✅ force today
-                        }
-                      })
-                    }
-                    className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 font-anonymous font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
-                  />
+                  {/* Plus 5 Button */}
+                  <button
+                    onClick={() => {
+                      adjustTimingFormTime(p.id, 5);
+                      setTimingFormData(prev => ({ ...prev, [p.id]: { ...prev[p.id], date: getToday() } }));
+                    }}
+                    className="h-11 w-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 active:scale-95 transition-transform"
+                  >
+                    <span className="text-xs font-bold">+5</span>
+                  </button>
+                </div>
 
-                  {/* 12-hour display */}
-                  <div className="text-[11px] font-anonymous font-semibold text-brand-600 dark:text-brand-400 mt-1 tabular-nums">
-                    {val ? formatTime12(val).replace(/<[^>]*>?/gm, '') : '--:--'}
-                  </div>
-
-                  {/* Controls */}
-                  <div className="flex justify-between items-center mt-3">
-
-                    {/* Checkbox */}
-                    <label className="flex items-center gap-2 text-[10px] font-semibold text-gray-400 uppercase cursor-pointer">
+                {/* Bottom Row: Settings (Fixed & Date) */}
+                <div className="flex items-center justify-between mt-3 px-1">
+                  <label className="flex items-center gap-2 cursor-pointer group/label">
+                    <div className="relative flex items-center">
                       <input
                         type="checkbox"
                         checked={isFixed}
-                        onChange={e =>
+                        onChange={(e) =>
                           setTimingFormData({
                             ...timingFormData,
-                            [p.id]: {
-                              ...timingFormData[p.id],
-                              fixed: e.target.checked
-                            }
+                            [p.id]: { ...timingFormData[p.id], fixed: e.target.checked },
                           })
                         }
+                        className="peer h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                       />
-                      Same all year
-                    </label>
-
-                    <div className="flex items-center gap-2">
-
-                      {/* Date */}
-                      {!isFixed && (
-                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
-                          <i className="fas fa-calendar-alt text-[10px] text-gray-400"></i>
-                          <input
-                            type="date"
-                            value={updateDate}
-                            onFocus={e => {
-                              // ✅ when user taps date → default to today
-                              setTimingFormData({
-                                ...timingFormData,
-                                [p.id]: {
-                                  ...timingFormData[p.id],
-                                  date: getToday()
-                                }
-                              });
-                            }}
-                            onChange={e =>
-                              setTimingFormData({
-                                ...timingFormData,
-                                [p.id]: {
-                                  ...timingFormData[p.id],
-                                  date: e.target.value || getToday()
-                                }
-                              })
-                            }
-                            className="bg-transparent text-[10px] font-medium text-gray-600 dark:text-gray-300 outline-none w-[85px]"
-                          />
-                        </div>
-                      )}
-
-                      {/* +/- buttons */}
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => {
-                            adjustTimingFormTime(p.id, -5);
-                            setTimingFormData(prev => ({
-                              ...prev,
-                              [p.id]: {
-                                ...prev[p.id],
-                                date: getToday() // ✅ force today
-                              }
-                            }));
-                          }}
-                          className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                        >
-                          -5
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            adjustTimingFormTime(p.id, 5);
-                            setTimingFormData(prev => ({
-                              ...prev,
-                              [p.id]: {
-                                ...prev[p.id],
-                                date: getToday() // ✅ force today
-                              }
-                            }));
-                          }}
-                          className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md text-[10px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                        >
-                          +5
-                        </button>
-                      </div>
-
                     </div>
-                  </div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter group-hover/label:text-gray-600 transition-colors">
+                      Fixed Year-round
+                    </span>
+                  </label>
+
+                  {!isFixed && (
+                    <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
+                      <i className="far fa-calendar-alt text-[10px] text-brand-500"></i>
+                      <input
+                        type="date"
+                        value={updateDate}
+                        onFocus={() => setTimingFormData({...timingFormData, [p.id]: {...timingFormData[p.id], date: getToday()}})}
+                        onChange={(e) =>
+                          setTimingFormData({
+                            ...timingFormData,
+                            [p.id]: { ...timingFormData[p.id], date: e.target.value || getToday() },
+                          })
+                        }
+                        className="bg-transparent text-[10px] font-bold text-gray-600 dark:text-gray-400 outline-none w-20 uppercase"
+                      />
+                    </div>
+                  )}
                 </div>
-              );
-            })}
-
-          </div>
-        );
-      })()}
-
-      {/* Footer */}
-      <div className="p-5 border-t border-gray-100 dark:border-gray-800">
-        <button
-          onClick={saveTimings}
-          className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-lg uppercase tracking-wide transition"
-        >
-          Save Timings
-        </button>
+              </div>
+            );
+          });
+        })()}
       </div>
 
+      {/* Footer - Integrated */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/30">
+        <button
+          onClick={saveTimings}
+          className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl text-sm font-bold shadow-[0_10px_20px_-10px_rgba(var(--brand-color-rgb),0.5)] uppercase tracking-widest transition-all active:scale-[0.98]"
+        >
+          Update All Timings
+        </button>
+      </div>
     </div>
   </div>
 )}
+
 
         {/* Info Edit Modal (Add/Edit Mosque Details) */}
         {activeModal === 'info' && (
