@@ -1156,28 +1156,143 @@ const saveTimings = async () => {
 )}
 
 
-        {/* Info Edit Modal (Add/Edit Mosque Details) */}
-        {activeModal === 'info' && (
-            <div onClick={(e) => handleModalClickOutside(e, 'info')} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-card font-sans">
-                    <div className="flex justify-between items-center mb-5">
-                        <h3 className="text-lg font-serif font-bold">{selectedMosqueId ? 'Edit Masjid' : 'Add Masjid'}</h3>
-                        {selectedMosqueId && <button onClick={deleteMosque} className="text-red-500 bg-red-50 p-2 rounded-lg"><i className="fas fa-trash-alt text-lg"></i></button>}
-                    </div>
-                    <div className="space-y-4">
-                        <input type="text" value={mosqueFormData.name} onChange={e=>setMosqueFormData({...mosqueFormData, name: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2 font-sans font-bold text-lg" placeholder="Masjid-e-..." />
-                        <input type="text" value={mosqueFormData.area} onChange={e=>setMosqueFormData({...mosqueFormData, area: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2" placeholder="Area" />
-                        <input type="url" value={mosqueFormData.locationLink} onChange={e=>setMosqueFormData({...mosqueFormData, locationLink: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2 text-xs" placeholder="Maps Link" />
-                        <textarea value={mosqueFormData.address} onChange={e=>setMosqueFormData({...mosqueFormData, address: e.target.value})} className="w-full bg-gray-50 border rounded-lg px-3 py-2 text-xs" placeholder="Notes..."></textarea>
-                    </div>
-                    <div className="mt-6 flex gap-2">
-                        <button onClick={() => saveMosqueInfo(true)} className="flex-1 py-2 bg-brand-50 text-brand-600 rounded-lg text-[9px] font-bold uppercase">Edit Timings</button>
-                        <button onClick={() => saveMosqueInfo(false)} className="flex-1 py-2 bg-brand-600 text-white rounded-lg text-[9px] font-bold uppercase">Save & Exit</button>
-                        <button onClick={() => setActiveModal(null)} className="px-3 py-2 text-[9px] font-bold bg-gray-100 rounded-lg uppercase">Cancel</button>
-                    </div>
-                </div>
-            </div>
+{/* Info Edit Modal */}
+{activeModal === 'info' && (
+  <div
+    onClick={(e) => handleModalClickOutside(e, 'info')}
+    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+  >
+    <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-sm shadow-2xl animate-card overflow-hidden border border-gray-100 dark:border-gray-800">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-5 border-b border-gray-50 dark:border-gray-800">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            {selectedMosqueId ? 'Edit Masjid' : 'Add New Masjid'}
+          </h3>
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Basic Information</p>
+        </div>
+        {selectedMosqueId && (
+          <button
+            onClick={deleteMosque}
+            className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-90"
+            title="Delete Masjid"
+          >
+            <i className="fas fa-trash-alt"></i>
+          </button>
         )}
+      </div>
+
+      {/* Form Body */}
+      <div className="p-6 space-y-5">
+        
+        {/* Name Field */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase ml-1">Masjid Name</label>
+          <div className="relative">
+            <i className="fas fa-mosque absolute left-3 top-1/2 -translate-y-1/2 text-brand-500/50 text-sm"></i>
+            <input
+              type="text"
+              value={mosqueFormData.name}
+              onChange={e => setMosqueFormData({ ...mosqueFormData, name: e.target.value })}
+              className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all"
+              placeholder="e.g. Masjid-e-Bilal"
+            />
+          </div>
+        </div>
+
+        {/* Area Field */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase ml-1">Area / Locality</label>
+          <div className="relative">
+            <i className="fas fa-map-marker-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input
+              type="text"
+              value={mosqueFormData.area}
+              onChange={e => setMosqueFormData({ ...mosqueFormData, area: e.target.value })}
+              className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 outline-none transition-all"
+              placeholder="e.g. Banjara Hills"
+            />
+          </div>
+        </div>
+
+        {/* Location Link */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase ml-1">Google Maps Link</label>
+          <div className="relative">
+            <i className="fas fa-link absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input
+              type="url"
+              value={mosqueFormData.locationLink}
+              onChange={e => setMosqueFormData({ ...mosqueFormData, locationLink: e.target.value })}
+              className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all"
+              placeholder="https://goo.gl/maps/..."
+            />
+          </div>
+        </div>
+
+        {/* Address / Notes */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase ml-1">Address & Notes</label>
+          <textarea
+            value={mosqueFormData.address}
+            onChange={e => setMosqueFormData({ ...mosqueFormData, address: e.target.value })}
+            rows="2"
+            className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-medium text-gray-600 dark:text-gray-300 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all resize-none"
+            placeholder="Full address or special instructions..."
+          ></textarea>
+        </div>
+      </div>
+
+      {/* Footer - Conditional Buttons */}
+      <div className="p-6 bg-gray-50 dark:bg-gray-800/30 flex flex-col gap-3">
+        {!selectedMosqueId ? (
+          /* ADD MODE BUTTONS */
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => saveMosqueInfo(true)}
+              className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl text-sm font-bold shadow-lg shadow-brand-500/20 uppercase tracking-widest transition-all active:scale-[0.98]"
+            >
+              Save & Add Timings
+            </button>
+            <button
+              onClick={() => setActiveModal(null)}
+              className="w-full py-3 bg-transparent text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest hover:text-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          /* EDIT MODE BUTTONS */
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <button
+                onClick={() => saveMosqueInfo(false)}
+                className="flex-1 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl text-[11px] font-bold uppercase tracking-wider hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+              >
+                Save & Exit
+              </button>
+              <button
+                onClick={() => saveMosqueInfo(true)}
+                className="flex-[1.5] py-3.5 bg-brand-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-wider hover:bg-brand-700 transition-all active:scale-95 shadow-lg shadow-brand-500/20"
+              >
+                Edit Timings
+              </button>
+            </div>
+            <button
+              onClick={() => setActiveModal(null)}
+              className="w-full py-2 bg-transparent text-gray-400 text-[10px] font-bold uppercase tracking-widest hover:text-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
+
+    </div>
+  </div>
+)}
+
 
         {/* Contact Us Modal */}
         {activeModal === 'contact' && (
