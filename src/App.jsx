@@ -143,9 +143,13 @@ export default function App() {
         if (docSnap.exists()) setAppSettings(prev => ({ ...prev, ...docSnap.data() }));
     });
 
-    const unsubLocations = onSnapshot(doc(db, 'settings', 'locations'), (docSnap) => {
-        if (docSnap.exists() && docSnap.data().cities) setAvailableCities(new Set(docSnap.data().cities));
+        const unsubLocations = onSnapshot(doc(db, 'settings', 'locations'), (docSnap) => {
+        if (docSnap.exists() && docSnap.data().cities) {
+            // ✅ BUG FIX: Merge 'Hyderabad' with whatever comes from the database
+            setAvailableCities(new Set(['Hyderabad', ...docSnap.data().cities]));
+        }
     });
+
 
     const unsubMosques = onSnapshot(collection(db, 'mosques'), (snap) => {
         setMosques(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -331,34 +335,35 @@ const handleOpenTimingModal = (mosque) => {
       if(goToTimings) openEditTiming(savedId); else setActiveModal(null);
   };
 
-const saveTimings = async () => {
-    if (userRole !== 'volunteer' && userRole !== 'admin') return;
-    const m = mosques.find(x => x.id === selectedMosqueId);
-    if (!m) return; 
+  const saveTimings = async () => {
+      if (userRole !== 'volunteer' && userRole !== 'admin') return;
+      const m = mosques.find(x => x.id === selectedMosqueId);
+      if (!m) return; 
 
-    let updated = { ...m.timings };
-    const nowISO = new Date().toISOString();
+      let updated = { ...m.timings };
+      const nowISO = new Date().toISOString();
 
-    [...prayersList, ...specialPrayersList].forEach(p => { 
-        const formData = timingFormData[p.id];
-        
-        if (formData && formData.time) {
-            // If user chose a custom date, use that. Otherwise, use today.
-            // We add T12:00:00Z to ensure it's treated as a full date in UTC
-            const finalDate = formData.date ? new Date(formData.date).toISOString() : nowISO;
+      [...prayersList, ...specialPrayersList].forEach(p => { 
+          const formData = timingFormData[p.id];
+          
+          if (formData && formData.time) {
+              const finalDate = formData.date ? new Date(formData.date).toISOString() : nowISO;
+              updated[p.id] = { 
+                  time: formData.time, 
+                  fixed: formData.fixed || false,
+                  lastUpdated: formData.fixed ? null : finalDate
+              }; 
+          } else if (formData && formData.time === '') {
+              // ✅ BUG FIX: If time is explicitly cleared, delete it from the payload
+              delete updated[p.id];
+          }
+      });
 
-            updated[p.id] = { 
-                time: formData.time, 
-                fixed: formData.fixed || false,
-                lastUpdated: formData.fixed ? null : finalDate
-            }; 
-        }
-    });
+      await updateDoc(doc(db, 'mosques', selectedMosqueId), { timings: updated }); 
+      setActiveModal(null); 
+      showToastMsg('Saved');
+  };
 
-    await updateDoc(doc(db, 'mosques', selectedMosqueId), { timings: updated }); 
-    setActiveModal(null); 
-    showToastMsg('Saved');
-};
 
 
   const deleteMosque = async () => { 
