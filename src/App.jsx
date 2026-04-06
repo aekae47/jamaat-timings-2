@@ -39,6 +39,15 @@ const specialPrayersList = [
   { id: 'qiyam', name: 'Qiyām-ul-Layl', mode: 'qiyam' },
   { id: 'lateIsha', name: 'Late Ishā', mode: 'lateIsha' }
 ];
+  	// Add this helper constant at the top of your file
+const DEFAULT_PRAYER_TIMES = {
+    fajar: "05:15",
+    zohar: "13:30",
+    asar: "17:15",
+    maghrib: "18:45",
+    isha: "20:30",
+    jummah: "13:30"
+};
 
 // --- SUB-COMPONENTS ---
 const FAQItem = ({ q, a }) => {
@@ -293,15 +302,7 @@ export default function App() {
   };
 
   const saveMosqueInfo = async (goToTimings = false) => {
-  	// Add this helper constant at the top of your file
-const DEFAULT_PRAYER_TIMES = {
-    fajar: "05:15",
-    zohar: "13:30",
-    asar: "17:15",
-    maghrib: "18:45",
-    isha: "20:30",
-    jummah: "13:30"
-};
+
 
 // Update your saveMosqueInfo or wherever you transition to the timing modal:
 const handleOpenTimingModal = (mosque) => {
