@@ -923,6 +923,141 @@ const openEditTiming = (id, freshTimings = null) => {
         )}
 
 {/* Personal List Modal */}
+{activeModal === 'personalList' && (
+  <div
+    onClick={(e) => {
+        handleModalClickOutside(e, 'personalList');
+        setEditingList(null); 
+    }}
+    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+  >
+    <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-sm shadow-2xl animate-card overflow-hidden border border-gray-100 dark:border-gray-800 flex flex-col max-h-[85vh]">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-5 border-b border-gray-50 dark:border-gray-800">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Manage Lists</h3>
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Organize your Masājid</p>
+        </div>
+        <button
+          onClick={() => { setActiveModal(null); setEditingList(null); }}
+          className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors"
+        >
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
+
+      {/* Lists Container */}
+      <div className="p-4 overflow-y-auto no-scrollbar space-y-2">
+        {Object.keys(personalLists).map(listName => {
+          const isAdded = personalLists[listName].includes(selectedMosqueId);
+          const isDefault = ['Favorites', 'Home', 'Work'].includes(listName);
+          const isEditing = editingList === listName;
+
+          let iconClass = "fa-folder";
+          if (listName === 'Favorites') iconClass = "fa-heart text-red-500";
+          else if (listName === 'Home') iconClass = "fa-home text-blue-500";
+          else if (listName === 'Work') iconClass = "fa-briefcase text-amber-500";
+
+          return (
+            <div
+              key={listName}
+              className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                isAdded
+                  ? 'bg-brand-50/30 dark:bg-brand-900/10 border-brand-100 dark:border-brand-900/50'
+                  : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'
+              }`}
+            >
+              {/* Left Side: Icon and Label */}
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-gray-700/50">
+                  <i className={`fas ${iconClass} text-sm`}></i>
+                </div>
+                
+                {isEditing ? (
+                  <input 
+                    type="text" 
+                    autoFocus
+                    value={editListInput}
+                    onChange={e => setEditListInput(e.target.value)}
+                    onBlur={() => renamePersonalList(listName)}
+                    onKeyDown={(e) => e.key === 'Enter' && renamePersonalList(listName)}
+                    className="flex-1 bg-white dark:bg-gray-900 border-2 border-brand-500 rounded-lg px-2 py-1 text-sm font-bold text-gray-900 dark:text-white outline-none"
+                  />
+                ) : (
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {listName}
+                  </span>
+                )}
+              </div>
+
+              {/* Right Side: Action Buttons & Checkbox */}
+              <div className="flex items-center gap-3">
+                
+                {/* Management Buttons (Visible by default for custom lists) */}
+                {!isDefault && !isEditing && (
+                  <div className="flex gap-1 items-center border-r border-gray-100 dark:border-gray-700 pr-2 mr-1">
+                    <button 
+                      onClick={() => { setEditingList(listName); setEditListInput(listName); }} 
+                      className="w-8 h-8 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 flex items-center justify-center transition-colors"
+                      title="Rename"
+                    >
+                      <i className="fas fa-pencil-alt text-[10px]"></i>
+                    </button>
+                    <button 
+                      onClick={() => deletePersonalList(listName)} 
+                      className="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center justify-center transition-colors"
+                      title="Delete"
+                    >
+                      <i className="fas fa-trash-alt text-[10px]"></i>
+                    </button>
+                  </div>
+                )}
+
+                {/* The Add/Remove Checkbox (THE ONLY SAVE TRIGGER) */}
+                <button 
+                  onClick={() => togglePersonalList(listName, selectedMosqueId)}
+                  className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
+                    isAdded 
+                      ? 'bg-brand-600 border-brand-600 text-white shadow-md shadow-brand-500/20' 
+                      : 'border-gray-200 dark:border-gray-700 bg-transparent text-transparent hover:border-brand-300'
+                  }`}
+                >
+                  <i className="fas fa-check text-xs"></i>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer: Create New List */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex gap-2">
+            <div className="relative flex-1">
+                <i className="fas fa-folder-plus absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input 
+                    type="text" 
+                    value={newListInput} 
+                    onChange={e=>setNewListInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && createNewPersonalList()}
+                    placeholder="New list name..." 
+                    className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl pl-10 pr-4 py-3 text-xs font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20" 
+                />
+            </div>
+            <button 
+                onClick={createNewPersonalList}
+                disabled={!newListInput.trim()}
+                className="px-5 py-3 bg-brand-600 disabled:opacity-50 hover:bg-brand-700 text-white rounded-2xl text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-brand-500/20"
+            >
+                Add
+            </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+)}
 {/* Detail Modal */}
 {activeModal === 'detail' && selectedMosqueDetail && (
   <div
