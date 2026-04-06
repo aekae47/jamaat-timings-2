@@ -298,19 +298,36 @@ const saveMosqueInfo = async (goToTimings = false) => {
       
       const data = { ...mosqueFormData, city: appSettings.city };
       let savedId = selectedMosqueId; 
-      
-      if(selectedMosqueId) {
+      let defaultDbTimings = null;
+
+      if (selectedMosqueId) {
           await updateDoc(doc(db, 'mosques', selectedMosqueId), data); 
       } else { 
           data.order = Date.now(); 
-          data.timings = {}; // Start empty so openEditTiming can inject defaults
+          
+          // Seed the database immediately with defaults
+          const nowISO = new Date().toISOString();
+          defaultDbTimings = {
+              fajr: { time: "05:15", fixed: false, lastUpdated: nowISO },
+              zuhr: { time: "13:30", fixed: true, lastUpdated: nowISO },
+              asr: { time: "17:15", fixed: false, lastUpdated: nowISO },
+              isha: { time: "20:30", fixed: false, lastUpdated: nowISO },
+              jumma: { time: "13:30", fixed: true, lastUpdated: nowISO }
+          };
+          data.timings = defaultDbTimings;
+          
           const ref = await addDoc(collection(db, 'mosques'), data); 
           savedId = ref.id; 
       }
       
       showToastMsg(); 
-      if(goToTimings) openEditTiming(savedId); 
-      else setActiveModal(null);
+      
+      if (goToTimings) {
+          // Pass the defaultDbTimings directly so we don't have to wait for state to update
+          openEditTiming(savedId, defaultDbTimings); 
+      } else {
+          setActiveModal(null);
+      }
   };
 
   const saveTimings = async () => {
@@ -366,41 +383,42 @@ const saveMosqueInfo = async (goToTimings = false) => {
       setActiveModal('info');
   };
 
-const openEditTiming = (id) => {
+const openEditTiming = (id, freshTimings = null) => {
       setSelectedMosqueId(id); 
+      
+      // m might be undefined right after creation due to async state updates
       const m = mosques.find(x => x.id === id);
       
-      if (m) {
-          // Note: The keys here MUST exactly match your prayersList IDs
-          const DEFAULT_PRAYER_TIMES = {
-              fajr: "05:15",
-              zuhr: "13:30",
-              asr: "17:15",
-              isha: "20:30",
-              jumma: "13:30"
+      const DEFAULT_PRAYER_TIMES = {
+          fajr: "05:15",
+          zuhr: "13:30",
+          asr: "17:15",
+          isha: "20:30",
+          jumma: "13:30"
+      };
+
+      const initTimings = {};
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Use freshTimings if passed (new mosque), otherwise existing state, otherwise empty
+      const sourceTimings = freshTimings || m?.timings || {};
+
+      [...prayersList, ...specialPrayersList].forEach(p => {
+          const existingTime = sourceTimings[p.id]?.time;
+          const isFixed = sourceTimings[p.id]?.fixed || false;
+          const lastUpdated = sourceTimings[p.id]?.lastUpdated 
+              ? sourceTimings[p.id].lastUpdated.split('T')[0] 
+              : today;
+
+          initTimings[p.id] = { 
+              // Priority: 1. Existing Data | 2. Default Values | 3. Empty String
+              time: existingTime || DEFAULT_PRAYER_TIMES[p.id] || '', 
+              fixed: isFixed, 
+              date: lastUpdated 
           };
-
-          const initTimings = {};
-          const today = new Date().toISOString().split('T')[0];
-
-          [...prayersList, ...specialPrayersList].forEach(p => {
-              // Get existing data if it exists
-              const existingTime = m.timings?.[p.id]?.time;
-              const isFixed = m.timings?.[p.id]?.fixed || false;
-              const lastUpdated = m.timings?.[p.id]?.lastUpdated 
-                  ? m.timings[p.id].lastUpdated.split('T')[0] 
-                  : today;
-
-              initTimings[p.id] = { 
-                  // 1. Use existing | 2. Use Default | 3. Leave blank (for Taraweeh/Eid)
-                  time: existingTime || DEFAULT_PRAYER_TIMES[p.id] || '', 
-                  fixed: isFixed, 
-                  date: lastUpdated 
-              };
-          });
-          
-          setTimingFormData(initTimings);
-      }
+      });
+      
+      setTimingFormData(initTimings);
       setActiveModal('timing');
   };
 
