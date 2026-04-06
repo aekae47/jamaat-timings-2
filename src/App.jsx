@@ -88,6 +88,9 @@ export default function App() {
   const [newListInput, setNewListInput] = useState('');
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '', honeypot: '' });
   
+  const [editingList, setEditingList] = useState(null);
+  const [editListInput, setEditListInput] = useState('');
+  
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
@@ -104,6 +107,9 @@ export default function App() {
   useEffect(() => {
     const localLists = localStorage.getItem('personalLists');
     const localOrder = localStorage.getItem('customOrder');
+	
+	const defaultStructure = { Favorites: [], Home: [], Work: [] };
+	
     if (localLists) {
         const parsed = JSON.parse(localLists);
         setPersonalLists(parsed);
@@ -267,6 +273,37 @@ export default function App() {
           const newLists = { ...personalLists, [name]: [] };
           setPersonalLists(newLists); saveUserData(newLists); setNewListInput('');
       }
+  };
+  
+  const deletePersonalList = (listName) => {
+      const DEFAULT_LISTS = ['Favorites', 'Home', 'Work'];
+      if (DEFAULT_LISTS.includes(listName) || !window.confirm(`Delete the list "${listName}"?`)) return;
+      
+      const newLists = { ...personalLists };
+      delete newLists[listName];
+      setPersonalLists(newLists); 
+      saveUserData(newLists);
+      if (currentList === listName) setCurrentList('All');
+  };
+
+  const renamePersonalList = (oldName) => {
+      const DEFAULT_LISTS = ['Favorites', 'Home', 'Work'];
+      const newName = editListInput.trim();
+      
+      // If invalid, duplicate, or default list -> just cancel edit
+      if (!newName || newName === oldName || personalLists[newName] || DEFAULT_LISTS.includes(oldName)) {
+          setEditingList(null);
+          return;
+      }
+      
+      const newLists = { ...personalLists };
+      newLists[newName] = newLists[oldName]; // Copy IDs to new name
+      delete newLists[oldName]; // Remove old list
+      
+      setPersonalLists(newLists); 
+      saveUserData(newLists);
+      setEditingList(null);
+      if (currentList === oldName) setCurrentList(newName);
   };
 
   const movePersonalOrder = (id, dir) => {
@@ -871,25 +908,144 @@ const openEditTiming = (id, freshTimings = null) => {
         )}
 
         {/* Personal List Modal */}
-        {activeModal === 'personalList' && (
-            <div onClick={(e) => handleModalClickOutside(e, 'personalList')} className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-card font-sans">
-                    <div className="flex justify-between items-center mb-5"><h3 className="text-lg font-serif font-bold dark:text-white">Add to List</h3><button onClick={() => setActiveModal(null)} className="text-gray-400"><i className="fas fa-times"></i></button></div>
-                    <div className="space-y-2 mb-6 max-h-[40vh] overflow-y-auto">
-                        {Object.keys(personalLists).map(listName => {
-                            const isAdded = personalLists[listName].includes(selectedMosqueId);
-                            return (
-                                <div key={listName} onClick={() => togglePersonalList(listName, selectedMosqueId)} className={`flex justify-between items-center p-3 rounded-xl border cursor-pointer ${isAdded ? 'bg-brand-50 border-brand-200' : 'bg-gray-50'}`}>
-                                    <span className={`text-sm font-bold ${isAdded ? 'text-brand-600' : 'text-gray-600'}`}>{listName}</span><i className={`fas ${isAdded ? 'fa-check-circle text-brand-600' : 'fa-circle text-gray-200'}`}></i>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className="flex gap-2 mb-6"><input type="text" value={newListInput} onChange={e=>setNewListInput(e.target.value)} placeholder="New list name..." className="flex-1 bg-gray-50 border rounded-lg px-3 py-2 text-xs" /><button onClick={createNewPersonalList} className="bg-brand-600 text-white px-4 py-2 rounded-lg text-xs"><i className="fas fa-plus"></i></button></div>
-                    <button onClick={() => setActiveModal(null)} className="w-full py-3 bg-gray-100 rounded-xl text-xs font-bold uppercase">Close</button>
-                </div>
+{activeModal === 'personalList' && (
+  <div
+    onClick={(e) => {
+        handleModalClickOutside(e, 'personalList');
+        setEditingList(null); // Reset edit state if user clicks outside
+    }}
+    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+  >
+    <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-sm shadow-2xl animate-card overflow-hidden border border-gray-100 dark:border-gray-800 flex flex-col max-h-[85vh]">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-5 border-b border-gray-50 dark:border-gray-800">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Save to List</h3>
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Select one or more</p>
+        </div>
+        <button
+          onClick={() => { setActiveModal(null); setEditingList(null); }}
+          className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors"
+        >
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
+
+      {/* Lists Container */}
+      <div className="p-4 overflow-y-auto no-scrollbar space-y-2">
+        {Object.keys(personalLists).map(listName => {
+          const isAdded = personalLists[listName].includes(selectedMosqueId);
+          const isDefault = ['Favorites', 'Home', 'Work'].includes(listName);
+          const isEditing = editingList === listName;
+
+          // Assign smart icons
+          let iconClass = "fa-folder";
+          if (listName === 'Favorites') iconClass = "fa-heart text-red-500";
+          else if (listName === 'Home') iconClass = "fa-home text-blue-500";
+          else if (listName === 'Work') iconClass = "fa-briefcase text-amber-500";
+
+          return (
+            <div
+              key={listName}
+              className={`group flex flex-col p-3 rounded-2xl border transition-all ${
+                isAdded
+                  ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-200 dark:border-brand-800'
+                  : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              <div className="flex justify-between items-center w-full">
+                  <div 
+                      className="flex-1 flex items-center gap-3 cursor-pointer"
+                      onClick={() => !isEditing && togglePersonalList(listName, selectedMosqueId)}
+                  >
+                      {/* Left Icon & Name */}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isAdded ? 'bg-white dark:bg-gray-800 shadow-sm' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
+                          <i className={`fas ${iconClass} ${!isAdded && isDefault && listName !== 'Favorites' ? 'text-gray-400' : ''} ${!isAdded && !isDefault ? 'text-gray-400' : ''} text-sm`}></i>
+                      </div>
+                      
+                      {/* Name / Edit Input */}
+                      {isEditing ? (
+                          <input 
+                              type="text" 
+                              autoFocus
+                              value={editListInput}
+                              onChange={e => setEditListInput(e.target.value)}
+                              onBlur={() => renamePersonalList(listName)}
+                              onKeyDown={(e) => e.key === 'Enter' && renamePersonalList(listName)}
+                              className="flex-1 bg-white dark:bg-gray-900 border-2 border-brand-500 rounded-lg px-2 py-1 text-sm font-bold text-gray-900 dark:text-white outline-none w-full"
+                          />
+                      ) : (
+                          <span className={`text-sm font-bold ${isAdded ? 'text-brand-700 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                              {listName}
+                          </span>
+                      )}
+                  </div>
+
+                  {/* Right Controls: Edit/Delete Hover OR Checkbox */}
+                  <div className="flex items-center gap-2 ml-2">
+                      {/* Only show edit/delete on non-default lists when NOT actively editing */}
+                      {!isDefault && !isEditing && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 mr-1">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setEditingList(listName); setEditListInput(listName); }} 
+                                className="w-8 h-8 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 flex items-center justify-center transition-colors"
+                              >
+                                <i className="fas fa-pencil-alt text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); deletePersonalList(listName); }} 
+                                className="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center justify-center transition-colors"
+                              >
+                                <i className="fas fa-trash-alt text-xs"></i>
+                              </button>
+                          </div>
+                      )}
+                      
+                      {/* The Select Checkbox */}
+                      <button 
+                        onClick={() => !isEditing && togglePersonalList(listName, selectedMosqueId)}
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
+                          isAdded 
+                              ? 'bg-brand-600 border-brand-600 text-white shadow-sm' 
+                              : 'border-gray-300 dark:border-gray-600 bg-transparent'
+                      }`}>
+                          {isAdded && <i className="fas fa-check text-[10px]"></i>}
+                      </button>
+                  </div>
+              </div>
             </div>
-        )}
+          );
+        })}
+      </div>
+
+      {/* Footer / Create New */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex gap-2">
+            <div className="relative flex-1">
+                <i className="fas fa-plus absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input 
+                    type="text" 
+                    value={newListInput} 
+                    onChange={e=>setNewListInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && createNewPersonalList()}
+                    placeholder="Create custom list..." 
+                    className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-xs font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20 transition-all" 
+                />
+            </div>
+            <button 
+                onClick={createNewPersonalList}
+                disabled={!newListInput.trim()}
+                className="px-5 py-3 bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-brand-500/20 transition-all active:scale-95"
+            >
+                Add
+            </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+)}
 
 {/* Detail Modal */}
 {activeModal === 'detail' && selectedMosqueDetail && (
@@ -1029,10 +1185,24 @@ const openEditTiming = (id, freshTimings = null) => {
       {/* Footer */}
       <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2 font-sans">
 
-        <button className="flex items-center justify-center w-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-          <i className="fas fa-heart mr-2 text-red-500"></i>
-          Add to Favorites
-        </button>
+        {/* In the Detail Modal Footer */}
+<button 
+  onClick={() => {
+      // Add to favorites if it isn't already there
+      if (!personalLists.Favorites?.includes(selectedMosqueId)) {
+          togglePersonalList('Favorites', selectedMosqueId);
+      }
+      setActiveModal('personalList');
+  }}
+  className={`flex items-center justify-center w-full font-bold py-3.5 rounded-2xl transition-all ${
+      personalLists.Favorites?.includes(selectedMosqueDetail.id) 
+      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50' 
+      : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
+  }`}
+>
+  <i className={`fas fa-heart mr-2 ${personalLists.Favorites?.includes(selectedMosqueDetail.id) ? 'text-red-500' : 'text-gray-400'}`}></i>
+  {personalLists.Favorites?.includes(selectedMosqueDetail.id) ? 'Saved to Favorites' : 'Add to Favorites'}
+</button>
 
         {selectedMosqueDetail.locationLink && (
           <a
