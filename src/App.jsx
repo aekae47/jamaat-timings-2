@@ -39,15 +39,6 @@ const specialPrayersList = [
   { id: 'qiyam', name: 'Qiyām-ul-Layl', mode: 'qiyam' },
   { id: 'lateIsha', name: 'Late Ishā', mode: 'lateIsha' }
 ];
-  	// Add this helper constant at the top of your file
-const DEFAULT_PRAYER_TIMES = {
-    fajar: "05:15",
-    zohar: "13:30",
-    asar: "17:15",
-    maghrib: "18:45",
-    isha: "20:30",
-    jummah: "13:30"
-};
 
 // --- SUB-COMPONENTS ---
 const FAQItem = ({ q, a }) => {
@@ -301,39 +292,25 @@ export default function App() {
       }
   };
 
-  const saveMosqueInfo = async (goToTimings = false) => {
-
-
-// Update your saveMosqueInfo or wherever you transition to the timing modal:
-const handleOpenTimingModal = (mosque) => {
-    const existingTimings = mosque.timings || {};
-    const initialData = {};
-
-    prayersList.forEach(p => {
-        initialData[p.id] = {
-            // If mosque has time, use it. Otherwise, use DEFAULT.
-            time: existingTimings[p.id]?.time || DEFAULT_PRAYER_TIMES[p.id] || "",
-            fixed: existingTimings[p.id]?.fixed || false,
-            date: existingTimings[p.id]?.date || new Date().toISOString().split('T')[0]
-        };
-    });
-
-    setTimingFormData(initialData);
-    setActiveModal('timing');
-};
-
+const saveMosqueInfo = async (goToTimings = false) => {
       if (userRole !== 'volunteer' && userRole !== 'admin') return;
       if(!mosqueFormData.name) return alert("Name required");
+      
       const data = { ...mosqueFormData, city: appSettings.city };
       let savedId = selectedMosqueId; 
-      if(selectedMosqueId) await updateDoc(doc(db, 'mosques', selectedMosqueId), data); 
-      else { 
+      
+      if(selectedMosqueId) {
+          await updateDoc(doc(db, 'mosques', selectedMosqueId), data); 
+      } else { 
           data.order = Date.now(); 
-          data.timings = { fajr: { time: "05:30", fixed: false }, zuhr: { time: "13:15", fixed: true }, asr: { time: "16:45", fixed: false }, isha: { time: "20:00", fixed: false }, jumma: { time: "13:30", fixed: true }};
-          const ref = await addDoc(collection(db, 'mosques'), data); savedId = ref.id; 
+          data.timings = {}; // Start empty so openEditTiming can inject defaults
+          const ref = await addDoc(collection(db, 'mosques'), data); 
+          savedId = ref.id; 
       }
+      
       showToastMsg(); 
-      if(goToTimings) openEditTiming(savedId); else setActiveModal(null);
+      if(goToTimings) openEditTiming(savedId); 
+      else setActiveModal(null);
   };
 
   const saveTimings = async () => {
@@ -389,14 +366,39 @@ const handleOpenTimingModal = (mosque) => {
       setActiveModal('info');
   };
 
-  const openEditTiming = (id) => {
-      setSelectedMosqueId(id); const m = mosques.find(x => x.id === id);
+const openEditTiming = (id) => {
+      setSelectedMosqueId(id); 
+      const m = mosques.find(x => x.id === id);
+      
       if (m) {
+          // Note: The keys here MUST exactly match your prayersList IDs
+          const DEFAULT_PRAYER_TIMES = {
+              fajr: "05:15",
+              zuhr: "13:30",
+              asr: "17:15",
+              isha: "20:30",
+              jumma: "13:30"
+          };
+
           const initTimings = {};
+          const today = new Date().toISOString().split('T')[0];
+
           [...prayersList, ...specialPrayersList].forEach(p => {
-              if (m.timings[p.id]) initTimings[p.id] = { time: m.timings[p.id].time, fixed: m.timings[p.id].fixed || false, date: m.timings[p.id].lastUpdated ? m.timings[p.id].lastUpdated.split('T')[0] : new Date().toISOString().split('T')[0] };
-              else initTimings[p.id] = { time: '', fixed: false, date: new Date().toISOString().split('T')[0] };
+              // Get existing data if it exists
+              const existingTime = m.timings?.[p.id]?.time;
+              const isFixed = m.timings?.[p.id]?.fixed || false;
+              const lastUpdated = m.timings?.[p.id]?.lastUpdated 
+                  ? m.timings[p.id].lastUpdated.split('T')[0] 
+                  : today;
+
+              initTimings[p.id] = { 
+                  // 1. Use existing | 2. Use Default | 3. Leave blank (for Taraweeh/Eid)
+                  time: existingTime || DEFAULT_PRAYER_TIMES[p.id] || '', 
+                  fixed: isFixed, 
+                  date: lastUpdated 
+              };
           });
+          
           setTimingFormData(initTimings);
       }
       setActiveModal('timing');
@@ -1073,7 +1075,7 @@ const handleOpenTimingModal = (mosque) => {
 
           return prayersList.map((p) => {
             // Priority: 1. Form Data | 2. Default Timing | 3. Empty String
-            const val = timingFormData[p.id]?.time || (selectedMosqueDetail.timings?.[p.id]?.time ? '' : DEFAULT_TIMINGS[p.id]) || '';
+            const val = timingFormData[p.id]?.time || '';
             const isFixed = timingFormData[p.id]?.fixed || false;
             const updateDate = timingFormData[p.id]?.date || getToday();
             const hasValue = val !== '';
