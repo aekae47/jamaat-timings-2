@@ -234,11 +234,20 @@ export default function App() {
       if (e.target === e.currentTarget) setActiveModal(null);
   };
 
-  const saveUserData = (newLists, newOrder) => {
+    const saveUserData = (newLists, newOrder) => {
       localStorage.setItem('personalLists', JSON.stringify(newLists));
       if (newOrder) localStorage.setItem('customOrder', JSON.stringify(newOrder));
-      if (currentUser) setDoc(doc(db, 'users', currentUser.uid), { personalLists: newLists, customOrder: newOrder || customOrder }, { merge: true });
+      
+      if (currentUser) {
+          // We still use merge: true for the whole document, 
+          // but we ensure the 'personalLists' key itself is replaced entirely
+          setDoc(doc(db, 'users', currentUser.uid), { 
+              personalLists: newLists, 
+              customOrder: newOrder || customOrder 
+          }, { merge: true });
+      }
   };
+
 
   const tryAction = (type, callback) => {
       if (type === 'edit' && (userRole === 'volunteer' || userRole === 'admin')) return callback();
@@ -275,31 +284,22 @@ export default function App() {
       }
   };
   
-  const deletePersonalList = (listName) => {
-      // 1. Define the protected default lists
+    const deletePersonalList = (listName) => {
       const DEFAULT_LISTS = ['Favorites', 'Home', 'Work'];
-      
-      // 2. Immediate exit if it's a default list
       if (DEFAULT_LISTS.includes(listName)) return;
 
-      // 3. Browser confirmation dialogue
-      const confirmed = window.confirm(`Are you sure you want to delete the list "${listName}"? This cannot be undone.`);
-      
-      if (confirmed) {
+      if (window.confirm(`Delete "${listName}"?`)) {
           const newLists = { ...personalLists };
-          delete newLists[listName];
+          delete newLists[listName]; // This key is now gone locally
           
           setPersonalLists(newLists); 
-          saveUserData(newLists);
+          saveUserData(newLists); // This now overwrites the DB object
           
-          // 4. Redirect user to 'All' if they were currently viewing the deleted list
-          if (currentList === listName) {
-              setCurrentList('All');
-          }
-          
+          if (currentList === listName) setCurrentList('All');
           showToastMsg('List Deleted');
       }
   };
+
 
   const renamePersonalList = (oldName) => {
       const DEFAULT_LISTS = ['Favorites', 'Home', 'Work'];
@@ -947,12 +947,33 @@ const openEditTiming = (id, freshTimings = null) => {
         </button>
       </div>
 
-      {/* Lists Container */}
-      <div className="p-4 overflow-y-auto no-scrollbar space-y-2">
-        {Object.keys(personalLists).map(listName => {
-          const isAdded = personalLists[listName].includes(selectedMosqueId);
-          const isDefault = ['Favorites', 'Home', 'Work'].includes(listName);
-          const isEditing = editingList === listName;
+ {/* Lists Container */}
+<div className="p-4 overflow-y-auto no-scrollbar space-y-2">
+  {(() => {
+    // 1. Define a stable order: Defaults first, then Custom Alphabetical
+    const defaultOrder = ['Favorites', 'Home', 'Work'];
+    const allNames = Object.keys(personalLists);
+    
+    const sortedListNames = allNames.sort((a, b) => {
+      const aDef = defaultOrder.indexOf(a);
+      const bDef = defaultOrder.indexOf(b);
+      
+      // If both are defaults, use defaultOrder
+      if (aDef !== -1 && bDef !== -1) return aDef - bDef;
+      // If only 'a' is default, it goes first
+      if (aDef !== -1) return -1;
+      // If only 'b' is default, it goes first
+      if (bDef !== -1) return 1;
+      // Otherwise, alphabetical for custom lists
+      return a.localeCompare(b);
+    });
+
+    return sortedListNames.map(listName => {
+      const isAdded = personalLists[listName].includes(selectedMosqueId);
+      const isDefault = defaultOrder.includes(listName);
+      const isEditing = editingList === listName;
+      // ... rest of your existing map logic remains the same
+
 
           let iconClass = "fa-folder";
           if (listName === 'Favorites') iconClass = "fa-heart text-red-500";
