@@ -1,41 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/assets/jot-icon-1-512.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0d9488">
-    <meta name="description" content="Jamaat on Time - Local Masjid Prayer Timings">
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/assets/jot-icon-1-512.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d9488">
+  <meta name="description" content="Jamaat on Time - Local Masjid Prayer Timings">
 
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Jamaat on Time">
-    <meta property="og:description" content="Local Masjid Prayer Timings at your fingertips. Punctual prayers, unified Ummah.">
-    <meta property="og:image" content="https://raw.githubusercontent.com/aekae47/jamaat-timings/refs/heads/main/assets/1200x630.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Jamaat on Time">
+  <meta property="og:description" content="Local Masjid Prayer Timings at your fingertips. Punctual prayers, unified Ummah.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/aekae47/jamaat-timings/refs/heads/main/assets/1200x630.jpg">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:wght@700&family=Lato:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <title>Jamaat on Time</title>
-    
-    <style>
-        /* Essential global styles from your original app */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { -webkit-tap-highlight-color: transparent; }
-        
-        .toggle-label { width: 36px; height: 20px; background-color: #e5e7eb; transition: 0.2s; border-radius: 9999px; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #0d9488; }
-        .toggle-checkbox { right: 16px; transition: 0.2s; width: 16px; height: 16px; top: 2px; position: absolute; }
-        .toggle-checkbox:checked { right: 0; border-color: #0d9488; }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+            ptsans: ['"PT Sans Narrow"', 'sans-serif'],
+            anonymous: ['"Google Sans Code"', 'monospace'],
+			arabic: ['"Scheherazade New"', 'serif'],
+          },
+          colors: {
+            brand: { 50: '#f0f9f9', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' },
+          },
+        },
+      },
+    }
+  </script>
+  
+  <title>Jamaat on Time</title>
+  
+  <style>
+      @import url('https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;700&family=Montserrat:wght@400;500;600;700;800&family=PT+Sans+Narrow:wght@400;700&family=Playfair+Display:wght@700&family=Scheherazade+New:wght@500&display=swap');
 
-        .animate-card { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .restricted { opacity: 0.4; filter: grayscale(100%); pointer-events: none; }
-    </style>
-  </head>
+      html, body, #root, .font-sans { 
+        font-family: 'Montserrat', sans-serif !important; 
+    }
+
+    /* Force PT Sans Narrow Bold where requested */
+    .font-ptsans { 
+        font-family: 'PT Sans Narrow', sans-serif !important; 
+        font-weight: 700 !important;
+    }
+
+    /* Force Anonymous Pro for numbers */
+    .font-anonymous { 
+        font-family: 'Google Sans Code', monospace !important; 
+        font-weight: 700 !important;
+    }
+
+    /* Keep Playfair for specific serif needs */
+    .font-serif { 
+        font-family: 'Playfair Display', serif !important; 
+    }
+     
+    .font-arabic {
+    font-family: 'Scheherazade New', serif !important;
+    direction: rtl;
+    /* Arabic text often looks smaller than English at the same px, 
+       so we'll bump it up slightly */
+    font-size: 1.1em; 
+}
+
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      body { -webkit-tap-highlight-color: transparent; }
+      
+      .toggle-label { width: 36px; height: 20px; background-color: #e5e7eb; transition: 0.2s; border-radius: 9999px; }
+      .toggle-checkbox:checked + .toggle-label { background-color: #0d9488; }
+      .toggle-checkbox { right: 16px; transition: 0.2s; width: 16px; height: 16px; top: 2px; position: absolute; }
+      .toggle-checkbox:checked { right: 0; border-color: #0d9488; }
+
+      .animate-card { animation: fadeIn 0.3s ease-out forwards; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+      .restricted { opacity: 0.4; filter: grayscale(100%); pointer-events: none; }
+  </style>
+</head>
   <body>
     <div id="root"></div>
     
