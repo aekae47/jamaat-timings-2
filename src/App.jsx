@@ -958,13 +958,9 @@ const openEditTiming = (id, freshTimings = null) => {
       const aDef = defaultOrder.indexOf(a);
       const bDef = defaultOrder.indexOf(b);
       
-      // If both are defaults, use defaultOrder
       if (aDef !== -1 && bDef !== -1) return aDef - bDef;
-      // If only 'a' is default, it goes first
       if (aDef !== -1) return -1;
-      // If only 'b' is default, it goes first
       if (bDef !== -1) return 1;
-      // Otherwise, alphabetical for custom lists
       return a.localeCompare(b);
     });
 
@@ -972,85 +968,84 @@ const openEditTiming = (id, freshTimings = null) => {
       const isAdded = personalLists[listName].includes(selectedMosqueId);
       const isDefault = defaultOrder.includes(listName);
       const isEditing = editingList === listName;
-      // ... rest of your existing map logic remains the same
 
+      // 2. Assign specific icons for the premium look
+      let iconClass = "fa-folder";
+      if (listName === 'Favorites') iconClass = "fa-heart text-red-500";
+      else if (listName === 'Home') iconClass = "fa-home text-blue-500";
+      else if (listName === 'Work') iconClass = "fa-briefcase text-amber-500";
 
-          let iconClass = "fa-folder";
-          if (listName === 'Favorites') iconClass = "fa-heart text-red-500";
-          else if (listName === 'Home') iconClass = "fa-home text-blue-500";
-          else if (listName === 'Work') iconClass = "fa-briefcase text-amber-500";
+      return (
+        <div
+          key={listName}
+          className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+            isAdded
+              ? 'bg-brand-50/30 dark:bg-brand-900/10 border-brand-100 dark:border-brand-900/50'
+              : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 shadow-sm'
+          }`}
+        >
+          {/* Left Side: Icon and Label */}
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-gray-800/50">
+              <i className={`fas ${iconClass} text-sm`}></i>
+            </div>
+            
+            {isEditing ? (
+              <input 
+                type="text" 
+                autoFocus
+                value={editListInput}
+                onChange={e => setEditListInput(e.target.value)}
+                onBlur={() => renamePersonalList(listName)}
+                onKeyDown={(e) => e.key === 'Enter' && renamePersonalList(listName)}
+                className="flex-1 bg-white dark:bg-gray-900 border-2 border-brand-500 rounded-lg px-2 py-1 text-sm font-bold text-gray-900 dark:text-white outline-none"
+              />
+            ) : (
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                {listName}
+              </span>
+            )}
+          </div>
 
-          return (
-            <div
-              key={listName}
-              className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
-                isAdded
-                  ? 'bg-brand-50/30 dark:bg-brand-900/10 border-brand-100 dark:border-brand-900/50'
-                  : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'
-              }`}
-            >
-              {/* Left Side: Icon and Label */}
-              <div className="flex items-center gap-3 flex-1">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-gray-700/50">
-                  <i className={`fas ${iconClass} text-sm`}></i>
-                </div>
-                
-                {isEditing ? (
-                  <input 
-                    type="text" 
-                    autoFocus
-                    value={editListInput}
-                    onChange={e => setEditListInput(e.target.value)}
-                    onBlur={() => renamePersonalList(listName)}
-                    onKeyDown={(e) => e.key === 'Enter' && renamePersonalList(listName)}
-                    className="flex-1 bg-white dark:bg-gray-900 border-2 border-brand-500 rounded-lg px-2 py-1 text-sm font-bold text-gray-900 dark:text-white outline-none"
-                  />
-                ) : (
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
-                    {listName}
-                  </span>
-                )}
-              </div>
-
-              {/* Right Side: Action Buttons & Checkbox */}
-              <div className="flex items-center gap-3">
-                
-                {/* Management Buttons (Visible by default for custom lists) */}
-                {!isDefault && !isEditing && (
-                  <div className="flex gap-1 items-center border-r border-gray-100 dark:border-gray-700 pr-2 mr-1">
-                    <button 
-                      onClick={() => { setEditingList(listName); setEditListInput(listName); }} 
-                      className="w-8 h-8 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 flex items-center justify-center transition-colors"
-                      title="Rename"
-                    >
-                      <i className="fas fa-pencil-alt text-[10px]"></i>
-                    </button>
-                    <button 
-                      onClick={() => deletePersonalList(listName)} 
-                      className="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center justify-center transition-colors"
-                      title="Delete"
-                    >
-                      <i className="fas fa-trash-alt text-[10px]"></i>
-                    </button>
-                  </div>
-                )}
-
-                {/* The Add/Remove Checkbox (THE ONLY SAVE TRIGGER) */}
+          {/* Right Side: Action Buttons & Checkbox */}
+          <div className="flex items-center gap-3">
+            
+            {/* Management Buttons for Custom Lists */}
+            {!isDefault && !isEditing && (
+              <div className="flex gap-1 items-center border-r border-gray-100 dark:border-gray-700 pr-2 mr-1">
                 <button 
-                  onClick={() => togglePersonalList(listName, selectedMosqueId)}
-                  className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
-                    isAdded 
-                      ? 'bg-brand-600 border-brand-600 text-white shadow-md shadow-brand-500/20' 
-                      : 'border-gray-200 dark:border-gray-700 bg-transparent text-transparent hover:border-brand-300'
-                  }`}
+                  onClick={() => { setEditingList(listName); setEditListInput(listName); }} 
+                  className="w-8 h-8 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 flex items-center justify-center transition-colors"
                 >
-                  <i className="fas fa-check text-xs"></i>
+                  <i className="fas fa-pencil-alt text-[10px]"></i>
+                </button>
+                <button 
+                  onClick={() => deletePersonalList(listName)} 
+                  className="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center justify-center transition-colors"
+                >
+                  <i className="fas fa-trash-alt text-[10px]"></i>
                 </button>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            )}
+
+            {/* Checkbox Toggle */}
+            <button 
+              onClick={() => togglePersonalList(listName, selectedMosqueId)}
+              className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
+                isAdded 
+                  ? 'bg-brand-600 border-brand-600 text-white shadow-md shadow-brand-500/20' 
+                  : 'border-gray-200 dark:border-gray-700 bg-transparent text-transparent hover:border-brand-300'
+              }`}
+            >
+              <i className="fas fa-check text-xs"></i>
+            </button>
+          </div>
+        </div>
+      );
+    });
+  })()}
+</div>
+
 
       {/* Footer: Create New List */}
       <div className="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800">
