@@ -824,7 +824,7 @@ export default function App() {
                 
                 {/* Map Layer */}
                 <div className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
-                    <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                    <APIProvider apiKey={AIzaSyCZvsxPuTCY3J-WhWLGdeOdPhLs_Twg1DI}>
                         <Map 
                             defaultZoom={13} 
                             center={userLocation || { lat: 17.3850, lng: 78.4867 }}
