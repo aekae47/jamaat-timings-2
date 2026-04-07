@@ -824,27 +824,31 @@ export default function App() {
                 
                 {/* Map Layer */}
                 <div className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
-                    <APIProvider apiKey={AIzaSyCZvsxPuTCY3J-WhWLGdeOdPhLs_Twg1DI}>
-                        <Map 
-                            defaultZoom={13} 
-                            center={userLocation || { lat: 17.3850, lng: 78.4867 }}
-                            disableDefaultUI={true}
-                            gestureHandling={'greedy'}
-                            styles={appSettings.theme === 'dark' ? mapStylesDark : mapStylesLight}
-                            onClick={() => setMapExpanded(true)}
-                        >
-                            {userLocation && (
-                                <AdvancedMarker position={userLocation}>
-                                    <div className="w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-lg pulse-ring"></div>
-                                </AdvancedMarker>
-                            )}
-                            {activeMosques.map(m => m.coordinates && (
-                                <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }}>
-                                    <Pin background={'#10b981'} borderColor={'#065f46'} glyphColor={'#fff'} />
-                                </AdvancedMarker>
-                            ))}
-                        </Map>
-                    </APIProvider>
+                    <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+    <div className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
+        <Map 
+            defaultZoom={13} 
+            center={userLocation || { lat: 17.3850, lng: 78.4867 }}
+            disableDefaultUI={true}
+            gestureHandling={'greedy'}
+            // 1. ADD YOUR MAP ID HERE
+            mapId="54617387409a464ce525dc8d" 
+            // 2. REMOVE the "styles={...}" line; styles are now linked to the Map ID
+            onClick={() => setMapExpanded(true)}
+        >
+            {userLocation && (
+                <AdvancedMarker position={userLocation}>
+                    <div className="w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-lg pulse-ring"></div>
+                </AdvancedMarker>
+            )}
+            {activeMosques.map(m => m.coordinates && (
+                <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }}>
+                    <Pin background={'#10b981'} borderColor={'#065f46'} glyphColor={'#fff'} />
+                </AdvancedMarker>
+            ))}
+        </Map>
+    </div>
+</APIProvider>
                 </div>
 
                 {/* Bottom Sheet Layer */}
