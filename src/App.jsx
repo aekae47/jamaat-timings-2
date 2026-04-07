@@ -234,20 +234,23 @@ export default function App() {
       if (e.target === e.currentTarget) setActiveModal(null);
   };
 
-    const saveUserData = (newLists, newOrder) => {
+      const saveUserData = (newLists, newOrder) => {
+      // 1. Update LocalStorage immediately for instant refresh support
       localStorage.setItem('personalLists', JSON.stringify(newLists));
       if (newOrder) localStorage.setItem('customOrder', JSON.stringify(newOrder));
       
+      // 2. Update Firestore
       if (currentUser) {
-          // We still use merge: true for the whole document, 
-          // but we ensure the 'personalLists' key itself is replaced entirely
-          setDoc(doc(db, 'users', currentUser.uid), { 
+          const userRef = doc(db, 'users', currentUser.uid);
+          
+          // Using updateDoc instead of setDoc(merge:true) ensures that the 
+          // 'personalLists' object is REPLACED by the new one, removing deleted keys.
+          updateDoc(userRef, { 
               personalLists: newLists, 
               customOrder: newOrder || customOrder 
-          }, { merge: true });
+          }).catch(err => console.error("Error saving user data:", err));
       }
   };
-
 
   const tryAction = (type, callback) => {
       if (type === 'edit' && (userRole === 'volunteer' || userRole === 'admin')) return callback();
@@ -284,21 +287,22 @@ export default function App() {
       }
   };
   
-    const deletePersonalList = (listName) => {
+      const deletePersonalList = (listName) => {
       const DEFAULT_LISTS = ['Favorites', 'Home', 'Work'];
       if (DEFAULT_LISTS.includes(listName)) return;
 
-      if (window.confirm(`Delete "${listName}"?`)) {
+      if (window.confirm(`Are you sure you want to delete "${listName}"?`)) {
           const newLists = { ...personalLists };
-          delete newLists[listName]; // This key is now gone locally
+          delete newLists[listName]; // Remove key locally
           
           setPersonalLists(newLists); 
-          saveUserData(newLists); // This now overwrites the DB object
+          saveUserData(newLists); // Overwrites the cloud object
           
           if (currentList === listName) setCurrentList('All');
           showToastMsg('List Deleted');
       }
   };
+
 
 
   const renamePersonalList = (oldName) => {
@@ -357,7 +361,6 @@ const saveMosqueInfo = async (goToTimings = false) => {
       } else { 
           data.order = Date.now(); 
           
-          // Seed the database immediately with defaults
           const nowISO = new Date().toISOString();
           defaultDbTimings = {
               fajr: { time: "05:15", fixed: false, lastUpdated: nowISO },
@@ -375,7 +378,6 @@ const saveMosqueInfo = async (goToTimings = false) => {
       showToastMsg(); 
       
       if (goToTimings) {
-          // Pass the defaultDbTimings directly so we don't have to wait for state to update
           openEditTiming(savedId, defaultDbTimings); 
       } else {
           setActiveModal(null);
