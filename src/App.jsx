@@ -808,21 +808,20 @@ export default function App() {
       { elementType: "labels.text.stroke", stylers: [{ color: "#111827" }] },
       { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
       { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d1d5db" }] },
-      { featureType: "poi", elementType: "labels.text.fill", stylers: [{ visibility: "off" }] },
-      { featureType: "poi", elementType: "geometry", stylers: [{ visibility: "off" }] },
+      { featureType: "poi", stylers: [{ visibility: "off" }] },
       { featureType: "road", elementType: "geometry", stylers: [{ color: "#1f2937" }] },
       { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#374151" }] },
-      { featureType: "water", elementType: "geometry", stylers: [{ color: "#030712" }] }
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#134e4a" }] }
   ];
   
   const mapStylesLight = [
       { elementType: "geometry", stylers: [{ color: "#f9fafb" }] },
-      { elementType: "labels.text.fill", stylers: [{ color: "#6b7280" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#0d9488" }] },
       { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
       { featureType: "poi", stylers: [{ visibility: "off" }] },
       { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-      { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#e5e7eb" }] },
-      { featureType: "water", elementType: "geometry", stylers: [{ color: "#d1d5db" }] }
+      { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#ccfbf1" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#99f6e4" }] }
   ];
 
   // --- MAIN RENDER ---
@@ -920,7 +919,6 @@ export default function App() {
             disableDefaultUI={true}
             gestureHandling={'greedy'}
             mapId="54617387409a464ce525dc8d" 
-            styles={appSettings.theme === 'dark' ? mapStylesDark : mapStylesLight}
             colorScheme={appSettings.theme === 'dark' ? 'DARK' : 'LIGHT'}
             onClick={() => setMapExpanded(true)}
         >
@@ -929,11 +927,32 @@ export default function App() {
                     <div className="w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-lg pulse-ring"></div>
                 </AdvancedMarker>
             )}
-            {activeMosques.map(m => m.coordinates && (
-                <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }}>
-                    <Pin background={'#10b981'} borderColor={'#065f46'} glyphColor={'#fff'} />
-                </AdvancedMarker>
-            ))}
+            {activeMosques.map(m => {
+                if (!m.coordinates) return null;
+                const activeTimeStr = m.timings?.[currentTargetPrayer]?.time;
+                let activeTimeLabel = null;
+                if (activeTimeStr) {
+                    const [h, min] = activeTimeStr.split(':');
+                    const hrs = parseInt(h) % 12 || 12;
+                    activeTimeLabel = `${hrs}:${min}`;
+                }
+                
+                return (
+                    <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="relative z-0 hover:z-[60] group">
+                        <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
+                            {activeTimeLabel && (
+                                <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-sm text-[10px] sm:text-[11px] font-bold font-anonymous text-brand-700 dark:text-brand-300 pointer-events-none whitespace-nowrap mb-0.5 border border-gray-100 dark:border-gray-700">
+                                    {activeTimeLabel}
+                                </div>
+                            )}
+                            <svg width="20" height="28" viewBox="0 0 24 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 34 12 34C12 34 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill={appSettings.theme === 'dark' ? '#0d9488' : '#14b8a6'} />
+                                <circle cx="12" cy="12" r="4.5" fill="#ffffff" />
+                            </svg>
+                        </div>
+                    </AdvancedMarker>
+                );
+            })}
         </Map>
 </APIProvider>
                 </div>
