@@ -248,10 +248,14 @@ export default function App() {
     if(!iso) return '';
     const updatedDate = new Date(iso);
     const now = new Date();
+    
+    // Normalize both to the start of the day to compare dates accurately
     const updatedDay = new Date(updatedDate.getFullYear(), updatedDate.getMonth(), updatedDate.getDate());
     const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
     const diffTime = nowDay - updatedDay;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
     if (diffDays === 0) return 'Today';
     return `${diffDays}d ago`;
   };
@@ -534,14 +538,6 @@ export default function App() {
              return timeB - timeA;
           }
 
-          // Default time/custom sort
-          if (viewMode === 'next' && currentTargetPrayer) {
-              const target = currentList === 'Jummah' ? 'jumma' : currentTargetPrayer;
-              const timeA = a.timings?.[target]?.time || "99:99";
-              const timeB = b.timings?.[target]?.time || "99:99";
-              return timeA.localeCompare(timeB);
-          }
-
           const idxA = customOrder.indexOf(a.id); const idxB = customOrder.indexOf(b.id);
           if (idxA === -1 && idxB === -1) return (b.order || 0) - (a.order || 0);
           if (idxA === -1) return 1; if (idxB === -1) return -1; return idxA - idxB;
@@ -554,6 +550,49 @@ export default function App() {
   
   // --- RENDER HELPERS ---
   const renderNextPrayerMode = () => {
+      const shouldSortByTimeLocally = (currentList !== 'Nearby') || (currentList === 'Nearby' && sortBy === 'time');
+
+      const getSortedSublist = (mosquesArr, pid) => {
+          let list = mosquesArr.filter(m => m.timings?.[pid]?.time);
+          if (shouldSortByTimeLocally) {
+              list = [...list].sort((a,b) => a.timings[pid].time.localeCompare(b.timings[pid].time));
+          }
+          return list;
+      };
+
+      if (currentList === 'Jummah') {
+          const jummaList = getSortedSublist(activeMosques, 'jumma');
+          if (!jummaList.length) return <div className="text-center mt-10 text-gray-400 text-xs font-bold uppercase tracking-widest">No Jummah timings found.</div>;
+          return (
+              <div className="pb-10">
+                  <div className="mt-4 mb-2 flex items-center justify-between px-1">
+                      <div className="flex items-center gap-2"><i className="fas fa-users text-xs text-emerald-600"></i><h3 className="text-xs font-sans font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Jummah Timings</h3></div>
+                  </div>
+                  {jummaList.map(m => {
+                      const t = m.timings.jumma.time; const [h, mins] = t.split(':');
+                      return (
+                          <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] border-emerald-600 mb-2 animate-card cursor-pointer">
+                              <div className="flex-1 mr-4 flex items-center gap-3">
+                                  <i className="fas fa-mosque text-sm text-emerald-500/30"></i>
+                                  <div>
+                                      <h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>
+                                      <p className="font-bold text-[10px] text-gray-500 font-medium font-sans flex items-center gap-2 mt-0.5">
+                                          {m.area}
+                                          {m.distance && m.distance !== Infinity && <span className="text-[9px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-1 py-0.5 rounded">{m.distance.toFixed(1)} km</span>}
+                                      </p>
+                                  </div>
+                              </div>
+                              <div className="text-right font-anonymous font-bold text-xl text-emerald-700 dark:text-emerald-400">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
+                          </div>
+                      );
+                  })}
+                  {visibleLimit < mosques.length && (
+                      <button onClick={() => setVisibleLimit(prev => prev + 20)} className="w-full py-2 mt-2 bg-gray-100 dark:bg-gray-800 text-gray-500 text-[10px] font-bold uppercase rounded-xl">Load More</button>
+                  )}
+              </div>
+          );
+      }
+
       let startKey = currentTargetPrayer === 'jumma' ? 'zuhr' : currentTargetPrayer; 
       let idx = sequenceOrder.indexOf(startKey);
       let sequence = []; 
@@ -563,61 +602,109 @@ export default function App() {
           sequence.push(pid);
       }
 
-      const pObj = currentList === 'Jummah' ? prayersList.find(p=>p.id==='jumma') : prayersList.find(p=>p.id===sequence[0]);
-      const currentTimingId = currentList === 'Jummah' ? 'jumma' : sequence[0];
-
       if (!activeMosques.length) return <div className="text-center mt-10 text-gray-400 text-xs font-bold uppercase tracking-widest">No Masājid found.</div>;
 
       return (
           <div className="pb-10">
-              <div className="mb-2 flex items-center justify-between px-1">
-                  <div className="flex items-center" dir="ltr">
-                      <i className={`fas ${pObj.icon} text-xs text-brand-500`}></i>
-                      <h3 className="ml-2 text-xs font-sans font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">{pObj.name}</h3>
-                      <span className="mx-2 h-4 w-px bg-brand-400 dark:bg-brand-500"></span>
-                      <span className="font-arabic text-md text-brand-600 dark:text-brand-400" dir="rtl">{pObj.arabic}</span>
-                  </div>
-                  {currentList === 'Nearby' && (
+              {currentList === 'Nearby' && (
+                  <div className="flex justify-end px-1 mb-2">
                       <button onClick={() => setSortBy(sortBy === 'time' ? 'distance' : 'time')} className="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                           Sort by {sortBy === 'time' ? 'Distance' : 'Time'} <i className="fas fa-sort"></i>
                       </button>
-                  )}
-              </div>
+                  </div>
+              )}
 
-              {activeMosques.map(m => {
-                  const t = m.timings?.[currentTimingId]; 
-                  if(!t?.time) return null;
-                  const [h, mins] = t.time.split(':'); 
-                  const rem = getTimeRemaining(t.time, currentTimingId); 
-                  const passed = rem === '(Time Passed)';
-                  const predicted = isTimingPredicted(t.lastUpdated) && !t.fixed;
-
+              {/* Special Eid Prayers Block */}
+              {['eidFitr', 'eidAdha'].map(eidKey => {
+                  if(!appSettings[eidKey]) return null;
+                  const sublist = getSortedSublist(activeMosques, eidKey);
+                  if(!sublist.length) return null;
                   return (
-                      <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className={`cursor-pointer flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] ${passed?'border-gray-300 opacity-60':'border-brand-500'} mb-2 transition-all`}>
-                          <div className="flex-1 flex items-center gap-3">
-                              <i className="fas fa-mosque text-sm text-gray-400"></i>
-                              <div>
-                                  <h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>
-                                  <p className="font-bold text-[10px] text-gray-500 flex items-center gap-2 mt-0.5">
-                                      {m.area}
-                                      {m.distance && m.distance !== Infinity && <span className="text-[9px] bg-brand-50 dark:bg-brand-900/30 text-brand-600 px-1 py-0.5 rounded">{m.distance.toFixed(1)} km</span>}
-                                  </p>
-                              </div>
-                          </div>
-                          <div className="text-right flex flex-col items-end leading-none tabular-nums">
-                              <div className="font-anonymous font-bold text-xl text-gray-900 dark:text-white tracking-tight relative">
-                                  {parseInt(h) % 12 || 12}:{mins}
-                                  <span className="text-[9px] ml-1 font-sans font-medium text-gray-500">{h >= 12 ? 'PM' : 'AM'}</span>
-                                  {predicted && <span className="text-amber-500 absolute -top-1 -right-2 text-[10px]" title="Predicted Timing">*</span>}
-                              </div>
-                              <div className={`mt-1 text-[9px] font-semibold font-sans px-2 py-0.5 rounded-md ${passed ? 'text-gray-400 bg-gray-100 dark:bg-gray-700' : 'text-brand-700 bg-brand-100 dark:bg-brand-900/40'}`}>
-                                  {rem}
-                              </div>
-                          </div>
+                      <div key={eidKey}>
+                          <div className="mt-4 mb-2 flex items-center gap-2 px-1"><i className="fas fa-star text-xs text-amber-500"></i><h3 className="text-xs font-sans font-bold text-amber-600 uppercase tracking-widest">{specialPrayersList.find(s=>s.id===eidKey).name}</h3></div>
+                          {sublist.map(m => {
+                              const [h, mins] = m.timings[eidKey].time.split(':');
+                              return (
+                                  <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] border-amber-500 mb-2 animate-card cursor-pointer">
+                                      <div className="flex-1 mr-4 flex items-center gap-3">
+                                          <i className="fas fa-mosque text-sm text-amber-400"></i>
+                                          <div>
+                                              <h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>
+                                              <p className="font-bold text-[10px] text-gray-500 font-medium font-sans flex items-center gap-2 mt-0.5">
+                                                  {m.area}
+                                                  {m.distance && m.distance !== Infinity && <span className="text-[9px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 px-1 py-0.5 rounded">{m.distance.toFixed(1)} km</span>}
+                                              </p>
+                                          </div>
+                                      </div>
+                                      <div className="text-right font-anonymous font-bold text-xl dark:text-white">{parseInt(h)%12||12}:{mins}<span className="text-[9px] ml-1 font-sans font-normal">{h>=12?'PM':'AM'}</span></div>
+                                  </div>
+                              );
+                          })}
                       </div>
                   );
               })}
-              
+
+              {/* Main 4 Prayers Sequence Block */}
+              {sequence.map((pid, seqIdx) => {
+                  const sublist = getSortedSublist(activeMosques, pid);
+                  if(!sublist.length) return null;
+                  const pObj = prayersList.find(p=>p.id===pid);
+                  return (
+                      <div key={pid}>
+                          <div className={`mt-6 mb-2 flex items-center justify-between px-2 pointer-events-none sticky top-0 py-2 z-10 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-b border-gray-100 dark:border-gray-800 rounded-lg`} dir="ltr">
+                              <div className="flex items-center">
+                                  <i className={`fas ${pObj.icon} text-xs ${seqIdx === 0 ? "text-brand-500" : "text-gray-400"}`}></i>
+                                  <h3 className={`ml-2 text-xs font-sans font-bold uppercase tracking-widest ${seqIdx === 0 ? "text-brand-600 dark:text-brand-400" : "text-gray-400"}`}>{pObj.name}</h3>
+                                  <span className={`mx-2 h-4 w-px ${seqIdx === 0 ? "bg-brand-400 dark:bg-brand-500" : "bg-gray-300 dark:bg-gray-600"}`}></span>
+                                  <span className={`font-arabic text-md ${seqIdx === 0 ? "text-brand-600 dark:text-brand-400" : "text-gray-400"}`} dir="rtl">{pObj.arabic}</span>
+                              </div>
+                          </div>
+
+                          {sublist.map(m => {
+                              const t = m.timings[pid]; 
+                              const [h, mins] = t.time.split(':'); 
+                              const rem = seqIdx === 0 ? getTimeRemaining(t.time, pid) : ''; 
+                              const passed = rem === '(Time Passed)';
+                              const predicted = isTimingPredicted(t.lastUpdated) && !t.fixed;
+                              const taraweehData = (pid === 'isha' && appSettings.ramadan && m.timings['taraweeh']?.time) ? m.timings['taraweeh'].time : null;
+
+                              return (
+                                  <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className={`cursor-pointer flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] ${seqIdx===0?(passed?'border-gray-300 opacity-60':'border-brand-500'):'border-gray-200 dark:border-gray-700 opacity-80'} mb-2 transition-all`}>
+                                      <div className="flex-1 flex items-center gap-3">
+                                          <i className="fas fa-mosque text-sm text-gray-400"></i>
+                                          <div>
+                                              <h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>
+                                              <p className="font-bold text-[10px] text-gray-500 font-medium font-sans flex items-center gap-2 mt-0.5">
+                                                  {m.area}
+                                                  {m.distance && m.distance !== Infinity && <span className="text-[9px] bg-brand-50 dark:bg-brand-900/30 text-brand-600 px-1 py-0.5 rounded">{m.distance.toFixed(1)} km</span>}
+                                              </p>
+                                              {taraweehData && <span className="inline-block mt-1 text-[8px] font-bold text-amber-800 dark:text-amber-100 px-1.5 py-0.5 rounded bg-amber-400 dark:bg-amber-600 shadow-sm uppercase font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweehData}</span> P</span>}
+                                          </div>
+                                      </div>
+                                      <div className="text-right flex flex-col items-end leading-none tabular-nums">
+                                          <div className="font-anonymous font-bold text-xl text-gray-900 dark:text-white tracking-tight relative">
+                                              {parseInt(h) % 12 || 12}:{mins}
+                                              <span className="text-[9px] ml-1 font-sans font-medium text-gray-500">{h >= 12 ? 'PM' : 'AM'}</span>
+                                              {predicted && <span className="text-amber-500 absolute -top-1 -right-2 text-[10px]" title="Predicted Timing">*</span>}
+                                          </div>
+                                          {t.lastUpdated && !t.fixed && (
+                                              <div className="w-full text-right font-ptsans text-[9px] text-gray-400 dark:text-gray-500 mt-1">
+                                                  {getRelativeTime(t.lastUpdated)}
+                                              </div>
+                                          )}
+                                          {seqIdx === 0 && (
+                                              <div className={`mt-1 text-[9px] font-semibold font-sans px-2 py-0.5 rounded-md ${passed ? 'text-gray-400 bg-gray-100 dark:bg-gray-700' : 'text-brand-700 bg-brand-100 dark:bg-brand-900/40'}`}>
+                                                  {rem}
+                                              </div>
+                                          )}
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </div>
+                  );
+              })}
+
               {visibleLimit < mosques.length && (
                   <button onClick={() => setVisibleLimit(prev => prev + 20)} className="w-full py-2 mt-2 bg-gray-100 dark:bg-gray-800 text-gray-500 text-[10px] font-bold uppercase rounded-xl">Load More</button>
               )}
@@ -632,6 +719,7 @@ export default function App() {
               <div className="flex justify-end mb-2">
                   <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 border-none outline-none px-2 py-1 rounded cursor-pointer">
                       <option value="distance">Sort by Distance</option>
+                      <option value="time">Sort by Time (Ascending)</option>
                       <option value="recent">Recently Updated</option>
                       <option value="custom">Custom Order</option>
                   </select>
@@ -823,17 +911,17 @@ export default function App() {
             <div className={`relative flex-1 flex flex-col w-full mt-[50px] ${locStatus === 'denied' ? 'mt-[85px]' : ''}`}>
                 
                 {/* Map Layer */}
-                <div className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
+                <div onTouchStart={() => setMapExpanded(true)} onMouseDown={() => setMapExpanded(true)} className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
                     <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-    <div className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
         <Map 
+            key={`${appSettings.theme}-${userLocation ? 'loc' : 'noloc'}`}
             defaultZoom={13} 
-            center={userLocation || { lat: 17.3850, lng: 78.4867 }}
+            defaultCenter={userLocation || { lat: 17.3850, lng: 78.4867 }}
             disableDefaultUI={true}
             gestureHandling={'greedy'}
-            // 1. ADD YOUR MAP ID HERE
             mapId="54617387409a464ce525dc8d" 
-            // 2. REMOVE the "styles={...}" line; styles are now linked to the Map ID
+            styles={appSettings.theme === 'dark' ? mapStylesDark : mapStylesLight}
+            colorScheme={appSettings.theme === 'dark' ? 'DARK' : 'LIGHT'}
             onClick={() => setMapExpanded(true)}
         >
             {userLocation && (
@@ -847,7 +935,6 @@ export default function App() {
                 </AdvancedMarker>
             ))}
         </Map>
-    </div>
 </APIProvider>
                 </div>
 
@@ -866,7 +953,7 @@ export default function App() {
                             <button onClick={() => setCurrentList('Jummah')} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === 'Jummah' ? 'bg-emerald-800 text-white border-emerald-800 shadow-md' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-transparent'}`}>Jummah</button>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto px-4 py-2" onClick={() => setMapExpanded(false)}>
+                    <div className="flex-1 overflow-y-auto px-4 py-2" onTouchStart={() => setMapExpanded(false)} onMouseDown={() => setMapExpanded(false)} onClick={() => setMapExpanded(false)}>
                         {renderNextPrayerMode()}
                     </div>
                 </div>
@@ -875,7 +962,7 @@ export default function App() {
 
         {/* Standard List Tab Override (No Map) */}
         {viewMode === 'list' && (
-            <div className={`flex-1 flex flex-col w-full mt-[50px] ${locStatus === 'denied' ? 'mt-[85px]' : ''} bg-gray-50 dark:bg-gray-900`}>
+            <div className={`flex-1 flex flex-col w-full overflow-hidden pt-[50px] ${locStatus === 'denied' ? 'pt-[85px]' : ''} bg-gray-50 dark:bg-gray-900`}>
                 <div className="w-full px-4 pt-3 pb-2 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 z-10">
                     <div className="relative mb-3">
                         <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
