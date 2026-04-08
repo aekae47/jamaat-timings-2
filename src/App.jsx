@@ -6,7 +6,18 @@ import {
 } from 'firebase/firestore';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps';
+
+// --- MAP CONTROLLER ---
+const MapController = ({ targetCenter }) => {
+   const map = useMap();
+   useEffect(() => {
+      if (map && targetCenter) {
+         map.panTo(targetCenter);
+      }
+   }, [map, targetCenter]);
+   return null;
+};
 
 // --- FIREBASE CONFIGURATION ---
 const firebaseConfig = {
@@ -75,6 +86,10 @@ export default function App() {
   const [mapExpanded, setMapExpanded] = useState(false);
   const [sortBy, setSortBy] = useState('distance'); // default to distance for Nearby
   const [visibleLimit, setVisibleLimit] = useState(20);
+  
+  const [searchCenter, setSearchCenter] = useState(null);
+  const [mapCameraCenter, setMapCameraCenter] = useState(null);
+  const [recenterTrigger, setRecenterTrigger] = useState(null);
 
   const [appSettings, setAppSettings] = useState({
     ramadan: false, eidFitr: false, eidAdha: false, qiyam: false, lateIsha: false,
@@ -509,14 +524,15 @@ export default function App() {
   // --- CENTRALIZED FILTERING & SORTING ENGINE ---
   const activeMosques = useMemo(() => {
       let filtered = mosques.filter(m => (m.city || 'Hyderabad') === appSettings.city);
-      
-      // Calculate Distances
-      if (userLocation) {
-          filtered = filtered.map(m => {
-              if (m.coordinates) return { ...m, distance: getDistance(userLocation.lat, userLocation.lng, m.coordinates.lat, m.coordinates.lng) };
-              return { ...m, distance: Infinity };
-          });
-      }
+
+      filtered = filtered.map(m => {
+          const activeCalcCenter = searchCenter || userLocation;
+          if (activeCalcCenter && m.coordinates) {
+              const d = getDistance(activeCalcCenter.lat, activeCalcCenter.lng, m.coordinates.lat, m.coordinates.lng);
+              return { ...m, distance: d };
+          }
+          return { ...m, distance: Infinity };
+      });
 
       if (currentList === 'Jummah') filtered = filtered.filter(m => m.timings?.jumma?.time);
       else if (currentList === 'Nearby') filtered = filtered.filter(m => m.distance && m.distance <= 4);
@@ -544,7 +560,7 @@ export default function App() {
       });
 
       return filtered.slice(0, currentList === 'Jummah' ? visibleLimit * 2 : visibleLimit);
-  }, [mosques, appSettings.city, currentList, searchQuery, customOrder, userLocation, sortBy, visibleLimit, viewMode, currentTargetPrayer, personalLists]);
+  }, [mosques, appSettings.city, currentList, searchQuery, customOrder, searchCenter, userLocation, sortBy, visibleLimit, viewMode, currentTargetPrayer, personalLists]);
 
   const selectedMosqueDetail = mosques.find(m => m.id === selectedMosqueId);
   
@@ -912,6 +928,22 @@ export default function App() {
                 {/* Map Layer */}
                 <div onTouchStart={() => setMapExpanded(true)} onMouseDown={() => setMapExpanded(true)} className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
                     <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+        {mapCameraCenter && (searchCenter || userLocation) && getDistance(mapCameraCenter.lat, mapCameraCenter.lng, (searchCenter || userLocation).lat, (searchCenter || userLocation).lng) > 1.5 && (
+           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[60] animate-fadeIn pointer-events-auto">
+               <button onClick={() => { setSearchCenter(mapCameraCenter); setMapCameraCenter(null); if(currentList!=='Nearby') setCurrentList('Nearby'); }} className="bg-white/95 dark:bg-gray-800/95 backdrop-blur shadow-lg px-4 py-2 rounded-full text-xs font-bold font-sans text-brand-600 dark:text-brand-400 border border-gray-100 dark:border-gray-700 hover:scale-105 transition-transform flex items-center gap-2">
+                   <i className="fas fa-search-location"></i> Search this area
+               </button>
+           </div>
+        )}
+
+        {searchCenter && (
+           <div className="absolute top-4 right-4 z-[60] animate-fadeIn pointer-events-auto">
+               <button onClick={() => { setSearchCenter(null); setMapCameraCenter(null); setRecenterTrigger({ lat: userLocation.lat, lng: userLocation.lng, _t: Date.now() }); }} className="bg-white dark:bg-gray-800 shadow-xl w-10 h-10 rounded-full border border-gray-100 dark:border-gray-700 flex items-center justify-center text-brand-600 dark:text-brand-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors tooltip-target" title="Return to my location">
+                   <i className="fas fa-crosshairs text-md"></i>
+               </button>
+           </div>
+        )}
+
         <Map 
             key={`${appSettings.theme}-${userLocation ? 'loc' : 'noloc'}`}
             defaultZoom={13} 
@@ -921,7 +953,9 @@ export default function App() {
             mapId="54617387409a464ce525dc8d" 
             colorScheme={appSettings.theme === 'dark' ? 'DARK' : 'LIGHT'}
             onClick={() => setMapExpanded(true)}
+            onCameraChanged={(e) => setMapCameraCenter(e.detail.center)}
         >
+            <MapController targetCenter={recenterTrigger} />
             {userLocation && (
                 <AdvancedMarker position={userLocation}>
                     <div className="w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-lg pulse-ring"></div>
