@@ -929,11 +929,15 @@ export default function App() {
             )}
             {activeMosques.map(m => {
                 if (!m.coordinates) return null;
-                const activeTimeStr = m.timings?.[currentTargetPrayer]?.time;
+                const prayerToDisplay = currentList === 'Jummah' ? 'jumma' : currentTargetPrayer;
+                const activeTimeStr = m.timings?.[prayerToDisplay]?.time;
                 let activeTimeLabel = null;
+                let activeAmpm = null;
                 if (activeTimeStr) {
                     const [h, min] = activeTimeStr.split(':');
-                    const hrs = parseInt(h) % 12 || 12;
+                    const hrs24 = parseInt(h);
+                    const hrs = hrs24 % 12 || 12;
+                    activeAmpm = hrs24 >= 12 ? 'PM' : 'AM';
                     activeTimeLabel = `${hrs}:${min}`;
                 }
                 
@@ -941,8 +945,9 @@ export default function App() {
                     <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="relative z-0 hover:z-[60] group">
                         <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
                             {activeTimeLabel && (
-                                <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-sm text-[10px] sm:text-[11px] font-bold font-anonymous text-brand-700 dark:text-brand-300 pointer-events-none whitespace-nowrap mb-0.5 border border-gray-100 dark:border-gray-700">
-                                    {activeTimeLabel}
+                                <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-sm text-[10px] sm:text-[11px] font-bold font-anonymous text-brand-700 dark:text-brand-300 pointer-events-none whitespace-nowrap mb-0.5 border border-gray-100 dark:border-gray-700 flex items-baseline gap-0.5">
+                                    <span>{activeTimeLabel}</span>
+                                    <span className="text-[7.5px] font-sans opacity-80">{activeAmpm}</span>
                                 </div>
                             )}
                             <svg width="20" height="28" viewBox="0 0 24 34" fill="none" xmlns="http://www.w3.org/2000/svg">
