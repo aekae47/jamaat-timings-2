@@ -1089,8 +1089,8 @@ export default function App() {
                                             <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
                                                 {activeTimeLabel && (
                                                     <div className="flex flex-col items-center pointer-events-none whitespace-nowrap mb-1 z-10 gap-0">
-                                                        <div className="inline-block w-fit border border-white/40 dark:border-gray-500/40 bg-white/75 dark:bg-gray-800/75 backdrop-blur-[8px] rounded-md px-1.5 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans">
-                                                            <div className="font-semibold text-[9px] text-gray-800 dark:text-gray-100 leading-tight">{m.name}</div>
+                                                        <div className="inline-block w-fit border border-white/40 dark:border-gray-500/40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-[8px] rounded-md px-1.5 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans">
+                                                            <div className="font-bold text-[9px] text-gray-800 dark:text-gray-100 leading-tight">{m.name}</div>
                                                         </div>
                                                         <div className={`inline-block w-fit border border-white/40 dark:border-gray-600/40 ${isEmerald ? 'bg-emerald-50/85 dark:bg-emerald-900/60' : 'bg-brand-50/85 dark:bg-brand-900/60'} backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans mt-[1px]`}>
                                                             <div className="flex items-center justify-center gap-1.5 h-full">
@@ -1120,18 +1120,18 @@ export default function App() {
                     </div>
 
                     {/* Bottom Sheet Layer */}
-                    <div className={`absolute bottom-0 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] rounded-t-3xl transition-all duration-500 ease-in-out flex flex-col z-30 pb-[70px] ${mapExpanded ? 'h-[25vh]' : 'h-[65vh]'}`}>
-                        <div className="w-full py-3 flex justify-center cursor-pointer" onClick={() => setMapExpanded(!mapExpanded)}>
+                    <div className={`absolute bottom-0 w-full bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl border-t border-white/30 dark:border-gray-800/50 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] rounded-t-3xl transition-all duration-500 ease-in-out flex flex-col z-30 pb-[70px] ${mapExpanded ? 'h-[25vh]' : 'h-[65vh]'}`}>
+                        <div className="w-full py-3 flex justify-center cursor-pointer border-b border-white/10 dark:border-gray-800/20" onClick={() => setMapExpanded(!mapExpanded)}>
                             <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
                         </div>
-                        <div className="w-full px-4 pb-1">
-                            <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans py-0.5">
+                        <div className="w-full px-4 py-2 bg-white/10 dark:bg-gray-800/5 backdrop-blur-lg border-b border-white/10 dark:border-gray-800/10">
+                            <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans">
                                 {['Nearby', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites', 'Home', 'Work'].includes(l))].map(list => (
-                                    <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); setMapExpanded(false); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-transparent dark:border-gray-700'}`}>
+                                    <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); setMapExpanded(false); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-white/30 dark:bg-gray-800/30 text-gray-500 border-white/20 dark:border-gray-700'}`}>
                                         {list}
                                     </button>
                                 ))}
-                                <button onClick={() => setCurrentList('Jummah')} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === 'Jummah' ? 'bg-emerald-800 text-white border-emerald-800 shadow-md' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-transparent'}`}>Jummah</button>
+                                <button onClick={() => setCurrentList('Jummah')} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === 'Jummah' ? 'bg-emerald-800 text-white border-emerald-800 shadow-md' : 'bg-emerald-50/30 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 border-white/20'}`}>Jummah</button>
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto px-4 py-2" onTouchStart={() => setMapExpanded(false)} onMouseDown={() => setMapExpanded(false)} onClick={() => setMapExpanded(false)}>
@@ -1143,21 +1143,21 @@ export default function App() {
 
             {/* Standard List Tab Override (No Map) */}
             {viewMode === 'list' && (
-                <div className={`flex-1 flex flex-col w-full overflow-hidden pt-[50px] ${locStatus === 'denied' ? 'pt-[85px]' : ''} bg-gray-50 dark:bg-gray-900`}>
-                    <div className="w-full px-4 pt-3 pb-2 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 z-10">
+                <div className={`flex-1 flex flex-col w-full relative overflow-hidden pt-[50px] ${locStatus === 'denied' ? 'pt-[85px]' : ''} bg-gray-50 dark:bg-gray-900`}>
+                    <div className="absolute top-[50px] left-0 w-full px-4 pt-3 pb-2 bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl shadow-sm border-b border-white/30 dark:border-gray-700/50 z-20">
                         <div className="relative mb-3">
                             <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
-                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search Masājid..." className="w-full bg-gray-100 dark:bg-gray-700/50 border-none rounded-lg py-2 pl-9 pr-4 text-xs font-bold outline-none dark:text-white focus:ring-2 focus:ring-brand-500 font-sans" />
+                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search Masājid..." className="w-full bg-white/30 dark:bg-gray-900/30 border border-white/30 dark:border-gray-600/20 rounded-lg py-2 pl-9 pr-4 text-xs font-bold outline-none dark:text-white focus:ring-2 focus:ring-brand-500 font-sans" />
                         </div>
                         <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans py-1">
                             {['Nearby', 'All', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites', 'Home', 'Work'].includes(l))].map(list => (
-                                <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-transparent dark:border-gray-700'}`}>
+                                <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-white/30 dark:bg-gray-800/30 text-gray-500 border-white/20 dark:border-gray-700'}`}>
                                     {list}
                                 </button>
                             ))}
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto px-4 pt-4 pb-24 z-0">
+                    <div className="flex-1 overflow-y-auto px-4 pt-[110px] pb-24 z-0">
                         {renderListMode()}
                     </div>
                 </div>
@@ -1202,7 +1202,7 @@ export default function App() {
 
             {/* FLOATING ACTION BUTTON */}
             {(userRole === 'admin' || userRole === 'volunteer') && viewMode !== 'info' && (
-                <button onClick={() => tryAction('edit', () => openMosqueModal(null))} className="fixed bottom-24 right-4 w-14 h-14 bg-brand-600 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-105"><i className="fas fa-plus text-xl"></i></button>
+                <button onClick={() => tryAction('edit', () => openMosqueModal(null))} className="fixed bottom-24 right-4 w-14 h-14 bg-brand-600/50 backdrop-blur-lg text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-105 border border-white/30"><i className="fas fa-plus text-xl"></i></button>
             )}
 
             {/* MODALS */}
