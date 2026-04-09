@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, addDoc, 
-  onSnapshot, enableIndexedDbPersistence, serverTimestamp, arrayUnion 
+  onSnapshot, enableIndexedDbPersistence, serverTimestamp, arrayUnion, getDoc
 } from 'firebase/firestore';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -216,15 +216,32 @@ export default function App() {
       setCurrentUser(user);
       if (user) {
         const userDocRef = doc(db, 'users', user.uid);
+        
+        let preAuthRole = null;
+        if (user.email) {
+            try {
+                const inviteSnap = await getDoc(doc(db, 'volunteer_invites', user.email.trim().toLowerCase()));
+                if (inviteSnap.exists()) preAuthRole = 'volunteer';
+            } catch(e) {}
+        }
+
         onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                setUserRole(data.role || 'user');
+                
+                if (preAuthRole === 'volunteer' && data.role === 'user') {
+                     updateDoc(userDocRef, { role: 'volunteer' }).catch(()=>{});
+                     setUserRole('volunteer');
+                } else {
+                     setUserRole(data.role || 'user');
+                }
+                
                 if (data.personalLists) setPersonalLists(data.personalLists);
                 if (data.customOrder) setCustomOrder(data.customOrder);
             } else {
-                setUserRole('user');
-                setDoc(userDocRef, { email: user.email, name: user.displayName, role: 'user', personalLists, customOrder, createdAt: new Date().toISOString() });
+                const initialRole = preAuthRole || 'user';
+                setUserRole(initialRole);
+                setDoc(userDocRef, { email: user.email, name: user.displayName, role: initialRole, personalLists, customOrder, createdAt: new Date().toISOString() });
             }
         });
       } else setUserRole('public');
