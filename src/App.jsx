@@ -470,7 +470,11 @@ export default function App() {
       }
 
       const data = { ...mosqueFormData, city: appSettings.city };
-      if (finalCoords) data.coordinates = finalCoords;
+      if (finalCoords && (finalCoords.lat || finalCoords.lat === 0) && (finalCoords.lng || finalCoords.lng === 0)) {
+          data.coordinates = { lat: parseFloat(finalCoords.lat), lng: parseFloat(finalCoords.lng) };
+      } else {
+          data.coordinates = null;
+      }
 
       let savedId = selectedMosqueId; 
       let defaultDbTimings = null;
@@ -1431,25 +1435,28 @@ export default function App() {
                 </div>
 
                 {mosqueFormData.coordinates && (
-                  <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700 space-y-2 relative">
-                      <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase ml-1">Coordinates</span>
-                          {userLocation && mosqueFormData.coordinates.lat && mosqueFormData.coordinates.lng && (
-                              <span className="text-[9px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-0.5 rounded font-bold tracking-wider">
-                                  {getDistance(userLocation.lat, userLocation.lng, mosqueFormData.coordinates.lat, mosqueFormData.coordinates.lng).toFixed(2)} km away
-                              </span>
-                          )}
+                  <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 mt-1">
+                      <div className="flex items-center gap-2 flex-1">
+                          <i className="fas fa-map-pin text-gray-400 text-[10px] ml-1"></i>
+                          <div className="flex items-center bg-white dark:bg-gray-700/50 rounded-md px-2 py-1.5 border border-gray-200 dark:border-gray-600 shadow-inner w-full max-w-[170px]">
+                              <input type="text" value={mosqueFormData.coordinates.lat || ''} onChange={(e) => {
+                                  let val = e.target.value;
+                                  if (val.includes(',')) {
+                                      const parts = val.split(',');
+                                      setMosqueFormData({ ...mosqueFormData, coordinates: { lat: parts[0].trim(), lng: parts[1].trim() } });
+                                  } else {
+                                      setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lat: val }});
+                                  }
+                              }} className="w-full bg-transparent text-[11px] font-bold text-gray-800 dark:text-gray-200 outline-none text-center font-anonymous placeholder-gray-300" placeholder="Lat" />
+                              <span className="text-gray-300 font-bold mx-0.5 text-[10px]">,</span>
+                              <input type="text" value={mosqueFormData.coordinates.lng || ''} onChange={(e) => setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lng: e.target.value }})} className="w-full bg-transparent text-[11px] font-bold text-gray-800 dark:text-gray-200 outline-none text-center font-anonymous placeholder-gray-300" placeholder="Lng" />
+                          </div>
                       </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                            <label className="text-[8px] text-gray-400 font-bold ml-1 uppercase mb-0.5 block">Lat</label>
-                            <input type="number" step="any" value={mosqueFormData.coordinates.lat || ''} onChange={(e) => setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lat: parseFloat(e.target.value) }})} className="w-full bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 outline-none" />
-                        </div>
-                        <div className="flex-1">
-                            <label className="text-[8px] text-gray-400 font-bold ml-1 uppercase mb-0.5 block">Lng</label>
-                            <input type="number" step="any" value={mosqueFormData.coordinates.lng || ''} onChange={(e) => setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lng: parseFloat(e.target.value) }})} className="w-full bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 outline-none" />
-                        </div>
-                      </div>
+                      {userLocation && mosqueFormData.coordinates.lat && mosqueFormData.coordinates.lng && (
+                          <span className="text-[9px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-1 rounded font-bold tracking-wider whitespace-nowrap">
+                              {getDistance(parseFloat(userLocation.lat), parseFloat(userLocation.lng), parseFloat(mosqueFormData.coordinates.lat), parseFloat(mosqueFormData.coordinates.lng)).toFixed(2)} km
+                          </span>
+                      )}
                   </div>
                 )}
                 <div className="space-y-1.5">
