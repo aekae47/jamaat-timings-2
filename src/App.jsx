@@ -175,7 +175,7 @@ export default function App() {
                     } catch (e) { console.error("Reverse geocoding failed", e); }
                 },
                 fallbackToIP,
-                { timeout: 8000 }
+                { timeout: 30000, maximumAge: 0, enableHighAccuracy: true }
             );
         } else {
             fallbackToIP();
@@ -1078,10 +1078,10 @@ export default function App() {
                                         <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="relative z-0 hover:z-[60] group">
                                             <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
                                                 {activeTimeLabel && (
-                                                    <div className="flex flex-col items-center pointer-events-none whitespace-nowrap mb-1 z-10 gap-[2px]">
-                                                        <mark className={`bg-white/95 dark:bg-gray-800/95 rounded-sm py-[3px] px-[6px] text-[8px] sm:text-[9px] font-sans font-bold leading-none ${isEmerald ? 'text-emerald-800 dark:text-emerald-300' : 'text-gray-800 dark:text-gray-200'}`}>{m.name}</mark>
-                                                        <mark className="bg-white/95 dark:bg-gray-800/95 rounded-sm py-[2px] px-[5px] text-[7px] font-sans uppercase font-bold text-gray-500 dark:text-gray-400 leading-none">{prayerName.slice(0, 6)}</mark>
-                                                        <mark className={`bg-white/95 dark:bg-gray-800/95 rounded py-[3px] px-2 text-[10px] sm:text-[11px] font-bold font-anonymous ${isEmerald ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-300'} flex items-baseline gap-0.5 leading-none`}>
+                                                    <div className="flex flex-col items-center pointer-events-none whitespace-nowrap mb-1 z-10 gap-0">
+                                                        <mark className={`bg-white/95 dark:bg-gray-800/95 rounded-t-sm py-[3px] px-[6px] text-[8px] sm:text-[9px] font-sans font-bold leading-none ${isEmerald ? 'text-emerald-800 dark:text-emerald-300' : 'text-gray-800 dark:text-gray-200'}`}>{m.name}</mark>
+                                                        <mark className="bg-white/95 dark:bg-gray-800/95 py-[2px] px-[5px] text-[7px] font-sans uppercase font-bold text-gray-500 dark:text-gray-400 leading-none">{prayerName.slice(0, 6)}</mark>
+                                                        <mark className={`bg-white/95 dark:bg-gray-800/95 rounded-b-sm py-[3px] px-2 text-[10px] sm:text-[11px] font-bold font-anonymous ${isEmerald ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-300'} flex items-baseline gap-0.5 leading-none`}>
                                                             <span>{activeTimeLabel}</span>
                                                             <span className="text-[7.5px] font-sans opacity-80 mt-[1px]">{activeAmpm}</span>
                                                         </mark>
