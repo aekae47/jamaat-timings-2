@@ -81,8 +81,15 @@ export default function App() {
   const [mosques, setMosques] = useState([]);
   
   // New Location & Map State
-  const [userLocation, setUserLocation] = useState(null);
-  const [locStatus, setLocStatus] = useState('prompt'); // prompt, granted, denied
+  const [userLocation, setUserLocation] = useState(() => {
+    try {
+      const saved = localStorage.getItem('userLocation');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [locStatus, setLocStatus] = useState(() => localStorage.getItem('userLocation') ? 'granted' : 'prompt');
   const [mapExpanded, setMapExpanded] = useState(false);
   const [sortBy, setSortBy] = useState('distance'); // default to distance for Nearby
   const [visibleLimit, setVisibleLimit] = useState(20);
@@ -129,6 +136,7 @@ export default function App() {
           const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
           setUserLocation(coords);
           setLocStatus('granted');
+          localStorage.setItem('userLocation', JSON.stringify(coords));
           
           // Reverse Geocode for Dynamic City
           try {
@@ -276,10 +284,7 @@ export default function App() {
   };
 
   const isTimingPredicted = (iso) => {
-      if(!iso) return false;
-      const diffTime = new Date() - new Date(iso);
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays > 30; // Flag as predicted if un-updated for 30 days
+      return false; // Stale timing concept removed as requested
   };
 
   const getTimeRemaining = (timeStr, pid = null) => {
@@ -535,7 +540,7 @@ export default function App() {
       });
 
       if (currentList === 'Jummah') filtered = filtered.filter(m => m.timings?.jumma?.time);
-      else if (currentList === 'Nearby') filtered = filtered.filter(m => m.distance && m.distance <= 4);
+      else if (currentList === 'Nearby') filtered = filtered.filter(m => m.distance !== undefined && m.distance <= 4);
       else if (currentList !== 'All') { 
           const list = personalLists[currentList] || []; 
           filtered = filtered.filter(m => list.includes(m.id)); 
@@ -927,7 +932,7 @@ export default function App() {
                 
                 {/* Map Layer */}
                 <div onTouchStart={() => setMapExpanded(true)} onMouseDown={() => setMapExpanded(true)} className={`absolute top-0 w-full transition-all duration-500 ease-in-out ${mapExpanded ? 'h-full pb-[15vh]' : 'h-[45vh]'} ${locStatus === 'denied' ? 'grayscale opacity-30 pointer-events-none' : ''}`}>
-                    <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                    <APIProvider apiKey={GOOGLE_MAPS_API_KEY} language="ur">
         {mapCameraCenter && (searchCenter || userLocation) && getDistance(mapCameraCenter.lat, mapCameraCenter.lng, (searchCenter || userLocation).lat, (searchCenter || userLocation).lng) > 1.5 && (
            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[60] animate-fadeIn pointer-events-auto">
                <button onClick={() => { setSearchCenter(mapCameraCenter); setMapCameraCenter(null); if(currentList!=='Nearby') setCurrentList('Nearby'); }} className="bg-white/95 dark:bg-gray-800/95 backdrop-blur shadow-lg px-4 py-2 rounded-full text-xs font-bold font-sans text-brand-600 dark:text-brand-400 border border-gray-100 dark:border-gray-700 hover:scale-105 transition-transform flex items-center gap-2">
