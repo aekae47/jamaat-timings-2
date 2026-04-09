@@ -585,6 +585,18 @@ export default function App() {
 
       filtered.sort((a, b) => {
           const activeSort = viewMode === 'next' ? sortByNext : sortByList;
+          
+          if (viewMode === 'next' && activeSort === 'time') {
+              return (a.distance || 0) - (b.distance || 0);
+          }
+          
+          if (activeSort === 'time') {
+              const tA = a.timings?.[currentTargetPrayer]?.time || "99:99";
+              const tB = b.timings?.[currentTargetPrayer]?.time || "99:99";
+              if (tA !== tB) return tA.localeCompare(tB);
+              return (a.distance || 0) - (b.distance || 0);
+          }
+
           if (activeSort === 'distance') return (a.distance || 0) - (b.distance || 0);
           if (activeSort === 'recent') {
              const timeA = Math.max(...Object.values(a.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
