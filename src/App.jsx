@@ -874,16 +874,7 @@ export default function App() {
                             <img src={currentUser.photoURL} alt="User" className="w-10 h-10 rounded-full border-2 border-brand-500" />
                             <div><p className="text-xs font-bold text-gray-800 dark:text-white truncate max-w-[140px]">{currentUser.displayName}</p><p className="text-[9px] font-bold uppercase tracking-wider text-brand-600 bg-brand-50 dark:bg-brand-900/30 px-1.5 py-0.5 rounded inline-block">{userRole}</p></div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <button onClick={() => signOut(auth)} className="text-xs font-bold text-red-500 hover:text-red-700">Log Out</button>
-                            {userRole !== 'admin' && (
-                                <button onClick={async () => {
-                                    const { updateDoc, doc } = await import('firebase/firestore');
-                                    await updateDoc(doc(db, 'users', currentUser.uid), { role: 'admin' });
-                                    alert("Admin rights restored!");
-                                }} className="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded">Restore Admin</button>
-                            )}
-                        </div>
+                        <button onClick={() => signOut(auth)} className="text-xs font-bold text-red-500 hover:text-red-700">Log Out</button>
                     </div>
                 ) : (
                     <button onClick={() => signInWithPopup(auth, provider)} className="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-gray-800 transition-colors"><i className="fab fa-google"></i> Sign in to Sync</button>
@@ -1011,10 +1002,12 @@ export default function App() {
                                     <span className="text-[7.5px] font-sans opacity-80">{activeAmpm}</span>
                                 </div>
                             )}
-                            <svg width="20" height="28" viewBox="0 0 24 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 34 12 34C12 34 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill={appSettings.theme === 'dark' ? '#0d9488' : '#14b8a6'} />
-                                <circle cx="12" cy="12" r="4.5" fill="#ffffff" />
-                            </svg>
+                            <div className="relative flex justify-center">
+                                <svg width="20" height="28" viewBox="0 0 24 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 34 12 34C12 34 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill={appSettings.theme === 'dark' ? '#0d9488' : '#14b8a6'} />
+                                </svg>
+                                <i className="fas fa-mosque absolute text-white pointer-events-none" style={{ top: '7px', fontSize: '9px' }}></i>
+                            </div>
                         </div>
                     </AdvancedMarker>
                 );
