@@ -1076,7 +1076,8 @@ export default function App() {
                     <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="relative z-0 hover:z-[60] group">
                         <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
                             {activeTimeLabel && (
-                                <div className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-sm flex flex-col items-center pointer-events-none whitespace-nowrap mb-0.5 border border-gray-100 dark:border-gray-700`}>
+                                <div className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-2 py-1 rounded shadow-sm flex flex-col items-center pointer-events-none whitespace-nowrap mb-0.5 border border-gray-100 dark:border-gray-700`}>
+                                    <span className={`text-[8px] sm:text-[9px] font-sans font-bold leading-none mb-0.5 ${isEmerald ? 'text-emerald-800 dark:text-emerald-300' : 'text-gray-800 dark:text-gray-200'}`}>{m.name}</span>
                                     <span className="text-[7px] font-sans uppercase font-bold text-gray-400 dark:text-gray-500 leading-none mb-[2px]">{prayerName.slice(0,6)}</span>
                                     <div className={`text-[10px] sm:text-[11px] font-bold font-anonymous ${isEmerald ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-300'} flex items-baseline gap-0.5 leading-none`}>
                                         <span>{activeTimeLabel}</span>
