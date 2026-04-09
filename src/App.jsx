@@ -121,7 +121,8 @@ export default function App() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('Saved');
 
-  const [mosqueFormData, setMosqueFormData] = useState({ name: 'Masjid-e-', area: '', locationLink: '', address: '' });
+  const [mosqueFormData, setMosqueFormData] = useState({ name: 'Masjid-e-', area: '', locationLink: '', address: '', coordinates: null });
+  const [isExtractingLoc, setIsExtractingLoc] = useState(false);
   const [timingFormData, setTimingFormData] = useState({});
   const [newCityInput, setNewCityInput] = useState('');
   const [newListInput, setNewListInput] = useState('');
@@ -438,18 +439,20 @@ export default function App() {
       if (userRole !== 'volunteer' && userRole !== 'admin') return;
       if(!mosqueFormData.name) return alert("Name required");
 
-      let extractedCoords = null;
-      if (mosqueFormData.locationLink) {
+      let finalCoords = mosqueFormData.coordinates;
+      if (!finalCoords && mosqueFormData.locationLink) {
+          setIsExtractingLoc(true);
           try {
               const { data } = await extractLocationCall({ url: mosqueFormData.locationLink });
-              if (data.lat && data.lng) extractedCoords = { lat: data.lat, lng: data.lng };
+              if (data && data.lat && data.lng) finalCoords = { lat: data.lat, lng: data.lng };
           } catch (e) {
               console.error("Failed to extract location", e);
           }
+          setIsExtractingLoc(false);
       }
 
       const data = { ...mosqueFormData, city: appSettings.city };
-      if (extractedCoords) data.coordinates = extractedCoords;
+      if (finalCoords) data.coordinates = finalCoords;
 
       let savedId = selectedMosqueId; 
       let defaultDbTimings = null;
@@ -521,12 +524,27 @@ export default function App() {
       } catch (e) { alert("Error sending message."); }
   };
 
+  const handleMapLinkBlur = async () => {
+      if (!mosqueFormData.locationLink) return;
+      setIsExtractingLoc(true);
+      try {
+          const { data } = await extractLocationCall({ url: mosqueFormData.locationLink });
+          if (data && data.lat && data.lng) {
+              setMosqueFormData(prev => ({ ...prev, coordinates: { lat: data.lat, lng: data.lng } }));
+          }
+      } catch (e) {
+          console.error("Failed to fetch loc", e);
+      } finally {
+          setIsExtractingLoc(false);
+      }
+  };
+
   const openMosqueModal = (id = null) => {
       setSelectedMosqueId(id);
       if (id) {
           const m = mosques.find(x => x.id === id);
-          if (m) setMosqueFormData({ name: m.name, area: m.area, locationLink: m.locationLink || '', address: m.address || '' });
-      } else setMosqueFormData({ name: 'Masjid-e-', area: '', locationLink: '', address: '' });
+          if (m) setMosqueFormData({ name: m.name, area: m.area, locationLink: m.locationLink || '', address: m.address || '', coordinates: m.coordinates || null });
+      } else setMosqueFormData({ name: 'Masjid-e-', area: '', locationLink: '', address: '', coordinates: null });
       setActiveModal('info');
   };
 
@@ -1378,12 +1396,42 @@ export default function App() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Google Maps Link</label>
+                  <div className="flex justify-between items-center ml-1">
+                      <label className="text-[11px] font-bold text-gray-400 uppercase">Google Maps Link</label>
+                      {mosqueFormData.locationLink && (
+                          <button onClick={handleMapLinkBlur} disabled={isExtractingLoc} className="text-[9px] bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-2 py-0.5 rounded font-bold uppercase transition disabled:opacity-50">
+                              {isExtractingLoc ? <i className="fas fa-spinner fa-spin"></i> : 'Fetch Loc'}
+                          </button>
+                      )}
+                  </div>
                   <div className="relative">
                     <i className="fas fa-link absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                    <input type="url" value={mosqueFormData.locationLink} onChange={e => setMosqueFormData({ ...mosqueFormData, locationLink: e.target.value })} className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-blue-600 outline-none" placeholder="https://goo.gl/maps/..." />
+                    <input type="url" value={mosqueFormData.locationLink} onChange={e => setMosqueFormData({ ...mosqueFormData, locationLink: e.target.value })} onBlur={handleMapLinkBlur} className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-blue-600 outline-none" placeholder="https://goo.gl/maps/..." />
                   </div>
                 </div>
+
+                {mosqueFormData.coordinates && (
+                  <div className="bg-gray-50 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700 space-y-2 relative">
+                      <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase ml-1">Coordinates</span>
+                          {userLocation && mosqueFormData.coordinates.lat && mosqueFormData.coordinates.lng && (
+                              <span className="text-[9px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-0.5 rounded font-bold tracking-wider">
+                                  {getDistance(userLocation.lat, userLocation.lng, mosqueFormData.coordinates.lat, mosqueFormData.coordinates.lng).toFixed(2)} km away
+                              </span>
+                          )}
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className="text-[8px] text-gray-400 font-bold ml-1 uppercase mb-0.5 block">Lat</label>
+                            <input type="number" step="any" value={mosqueFormData.coordinates.lat || ''} onChange={(e) => setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lat: parseFloat(e.target.value) }})} className="w-full bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 outline-none" />
+                        </div>
+                        <div className="flex-1">
+                            <label className="text-[8px] text-gray-400 font-bold ml-1 uppercase mb-0.5 block">Lng</label>
+                            <input type="number" step="any" value={mosqueFormData.coordinates.lng || ''} onChange={(e) => setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lng: parseFloat(e.target.value) }})} className="w-full bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 outline-none" />
+                        </div>
+                      </div>
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Address & Notes</label>
                   <textarea value={mosqueFormData.address} onChange={e => setMosqueFormData({ ...mosqueFormData, address: e.target.value })} rows="2" className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-medium text-gray-600 dark:text-white outline-none resize-none" placeholder="Full address or special instructions..."></textarea>
