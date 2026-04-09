@@ -91,7 +91,8 @@ export default function App() {
   });
   const [locStatus, setLocStatus] = useState(() => localStorage.getItem('userLocation') ? 'granted' : 'prompt');
   const [mapExpanded, setMapExpanded] = useState(false);
-  const [sortBy, setSortBy] = useState('distance'); // default to distance for Nearby
+  const [sortByNext, setSortByNext] = useState('time'); 
+  const [sortByList, setSortByList] = useState('distance'); 
   const [visibleLimit, setVisibleLimit] = useState(20);
   
   const [searchCenter, setSearchCenter] = useState(null);
@@ -178,12 +179,26 @@ export default function App() {
   useEffect(() => { requestLocation(); }, []);
 
   useEffect(() => {
-    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    const handler = (e) => { 
+        // Allowing default behavior so the native browser popup/infobar can appear on open
+        setInstallPrompt(e); 
+    };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  const handleInstallClick = async () => {};
+  const handleInstallClick = async () => {
+      if (!installPrompt) return;
+      try {
+          await installPrompt.prompt();
+          const { outcome } = await installPrompt.userChoice;
+          if (outcome === 'accepted') {
+              setInstallPrompt(null);
+          }
+      } catch (err) {
+          console.error("Install prompt error:", err);
+      }
+  };
 
   useEffect(() => {
     const localLists = localStorage.getItem('personalLists');
@@ -552,8 +567,9 @@ export default function App() {
       }
 
       filtered.sort((a, b) => {
-          if (sortBy === 'distance') return (a.distance || 0) - (b.distance || 0);
-          if (sortBy === 'recent') {
+          const activeSort = viewMode === 'next' ? sortByNext : sortByList;
+          if (activeSort === 'distance') return (a.distance || 0) - (b.distance || 0);
+          if (activeSort === 'recent') {
              const timeA = Math.max(...Object.values(a.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
              const timeB = Math.max(...Object.values(b.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
              return timeB - timeA;
@@ -565,13 +581,13 @@ export default function App() {
       });
 
       return filtered.slice(0, currentList === 'Jummah' ? visibleLimit * 2 : visibleLimit);
-  }, [mosques, appSettings.city, currentList, searchQuery, customOrder, searchCenter, userLocation, sortBy, visibleLimit, viewMode, currentTargetPrayer, personalLists]);
+  }, [mosques, appSettings.city, currentList, searchQuery, customOrder, searchCenter, userLocation, sortByNext, sortByList, visibleLimit, viewMode, currentTargetPrayer, personalLists]);
 
   const selectedMosqueDetail = mosques.find(m => m.id === selectedMosqueId);
   
   // --- RENDER HELPERS ---
   const renderNextPrayerMode = () => {
-      const shouldSortByTimeLocally = (currentList !== 'Nearby') || (currentList === 'Nearby' && sortBy === 'time');
+      const shouldSortByTimeLocally = (currentList !== 'Nearby') || (currentList === 'Nearby' && sortByNext === 'time');
 
       const getSortedSublist = (mosquesArr, pid) => {
           let list = mosquesArr.filter(m => m.timings?.[pid]?.time);
@@ -586,7 +602,7 @@ export default function App() {
           if (!jummaList.length) return <div className="text-center mt-10 text-gray-400 text-xs font-bold uppercase tracking-widest">No Jummah timings found.</div>;
           return (
               <div className="pb-10">
-                  <div className="mt-4 mb-2 flex items-center justify-between px-1">
+                  <div className="mt-2 mb-2 flex items-center justify-between px-1">
                       <div className="flex items-center gap-2"><i className="fas fa-users text-xs text-emerald-600"></i><h3 className="text-xs font-sans font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Jummah Timings</h3></div>
                   </div>
                   {jummaList.map(m => {
@@ -627,14 +643,6 @@ export default function App() {
 
       return (
           <div className="pb-10">
-              {currentList === 'Nearby' && (
-                  <div className="flex justify-end px-1 mb-2">
-                      <button onClick={() => setSortBy(sortBy === 'time' ? 'distance' : 'time')} className="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                          Sort by {sortBy === 'time' ? 'Distance' : 'Time'} <i className="fas fa-sort"></i>
-                      </button>
-                  </div>
-              )}
-
               {/* Special Eid Prayers Block */}
               {['eidFitr', 'eidAdha'].map(eidKey => {
                   if(!appSettings[eidKey]) return null;
@@ -672,13 +680,18 @@ export default function App() {
                   const pObj = prayersList.find(p=>p.id===pid);
                   return (
                       <div key={pid}>
-                          <div className={`mt-6 mb-2 flex items-center justify-between px-2 pointer-events-none sticky top-0 py-2 z-10 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-b border-gray-100 dark:border-gray-800 rounded-lg`} dir="ltr">
-                              <div className="flex items-center">
+                          <div className={`${seqIdx === 0 ? 'mt-1' : 'mt-6'} mb-2 flex items-center justify-between px-2 sticky top-0 py-2 z-10 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-b border-gray-100 dark:border-gray-800 rounded-lg`} dir="ltr">
+                              <div className="flex items-center pointer-events-none">
                                   <i className={`fas ${pObj.icon} text-xs ${seqIdx === 0 ? "text-brand-500" : "text-gray-400"}`}></i>
                                   <h3 className={`ml-2 text-xs font-sans font-bold uppercase tracking-widest ${seqIdx === 0 ? "text-brand-600 dark:text-brand-400" : "text-gray-400"}`}>{pObj.name}</h3>
                                   <span className={`mx-2 h-4 w-px ${seqIdx === 0 ? "bg-brand-400 dark:bg-brand-500" : "bg-gray-300 dark:bg-gray-600"}`}></span>
                                   <span className={`font-arabic text-md ${seqIdx === 0 ? "text-brand-600 dark:text-brand-400" : "text-gray-400"}`} dir="rtl">{pObj.arabic}</span>
                               </div>
+                              {seqIdx === 0 && currentList === 'Nearby' && (
+                                  <button onClick={() => setSortByNext(prev => prev === 'time' ? 'distance' : 'time')} className="pointer-events-auto text-[10px] font-bold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-xl transition-all shadow-sm border border-gray-200 dark:border-gray-700">
+                                      Sort by {sortByNext === 'time' ? 'Distance' : 'Time'} <i className="fas fa-sort ml-1 opacity-70"></i>
+                                  </button>
+                              )}
                           </div>
 
                           {sublist.map(m => {
@@ -738,7 +751,7 @@ export default function App() {
       return (
           <div className="pb-10 space-y-3">
               <div className="flex justify-end mb-2">
-                  <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 border-none outline-none px-2 py-1 rounded cursor-pointer">
+                  <select value={sortByList} onChange={(e) => setSortByList(e.target.value)} className="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 border-none outline-none px-2 py-1 rounded cursor-pointer">
                       <option value="distance">Sort by Distance</option>
                       <option value="time">Sort by Time (Ascending)</option>
                       <option value="recent">Recently Updated</option>
@@ -768,7 +781,7 @@ export default function App() {
                                   </div>
                               </div>
                               <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1">
-                                  {sortBy === 'custom' && (
+                                  {sortByList === 'custom' && (
                                       <>
                                           <button onClick={() => movePersonalOrder(m.id, -1)} className="w-6 h-6 rounded flex items-center justify-center text-xs text-gray-400"><i className="fas fa-chevron-up"></i></button>
                                           <button onClick={() => movePersonalOrder(m.id, 1)} className="w-6 h-6 rounded flex items-center justify-center text-xs text-gray-400"><i className="fas fa-chevron-down"></i></button>
@@ -1006,8 +1019,8 @@ export default function App() {
                     <div className="w-full py-3 flex justify-center cursor-pointer" onClick={() => setMapExpanded(!mapExpanded)}>
                         <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
                     </div>
-                    <div className="w-full px-4 pb-2">
-                        <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans py-1">
+                    <div className="w-full px-4 pb-1">
+                        <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans py-0.5">
                             {['Nearby', 'All', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites','Home','Work'].includes(l))].map(list => (
                                 <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); setMapExpanded(false); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-transparent dark:border-gray-700'}`}>
                                     {list}
