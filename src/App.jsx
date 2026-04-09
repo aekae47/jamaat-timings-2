@@ -1035,7 +1035,7 @@ export default function App() {
 
         <Map 
             key={`${appSettings.theme}-${userLocation ? 'loc' : 'noloc'}`}
-            defaultZoom={13} 
+            defaultZoom={15} 
             defaultCenter={userLocation || { lat: 17.3850, lng: 78.4867 }}
             disableDefaultUI={true}
             gestureHandling={'greedy'}
