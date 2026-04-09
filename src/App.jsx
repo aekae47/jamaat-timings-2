@@ -132,6 +132,24 @@ export default function App() {
 
   // --- LOCATION ENGINE ---
   const requestLocation = () => {
+    const fallbackToIP = async () => {
+        setLocStatus('denied');
+        if(currentList === 'Nearby') setCurrentList('All');
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            if (data && data.latitude && data.longitude) {
+                const coords = { lat: data.latitude, lng: data.longitude };
+                setUserLocation(coords);
+                if (data.city) {
+                    setAppSettings(prev => ({ ...prev, city: data.city }));
+                    localStorage.setItem('city', data.city);
+                    setAvailableCities(prev => new Set([data.city, ...prev]));
+                }
+            }
+        } catch(e) { console.error("IP fallback failed", e); }
+    };
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -156,11 +174,11 @@ export default function App() {
             }
           } catch (e) { console.error("Reverse geocoding failed", e); }
         },
-        () => { 
-            setLocStatus('denied'); 
-            if(currentList === 'Nearby') setCurrentList('All'); 
-        }
+        fallbackToIP,
+        { timeout: 8000 }
       );
+    } else {
+        fallbackToIP();
     }
   };
 
@@ -604,18 +622,20 @@ export default function App() {
       filtered.sort((a, b) => {
           const activeSort = viewMode === 'next' ? sortByNext : sortByList;
           
+          const getSafeDist = (d) => (d === undefined || d === Infinity) ? 999999 : d;
+
           if (viewMode === 'next' && activeSort === 'time') {
-              return (a.distance || 0) - (b.distance || 0);
+              return getSafeDist(a.distance) - getSafeDist(b.distance);
           }
           
           if (activeSort === 'time') {
               const tA = a.timings?.[currentTargetPrayer]?.time || "99:99";
               const tB = b.timings?.[currentTargetPrayer]?.time || "99:99";
               if (tA !== tB) return tA.localeCompare(tB);
-              return (a.distance || 0) - (b.distance || 0);
+              return getSafeDist(a.distance) - getSafeDist(b.distance);
           }
 
-          if (activeSort === 'distance') return (a.distance || 0) - (b.distance || 0);
+          if (activeSort === 'distance') return getSafeDist(a.distance) - getSafeDist(b.distance);
           if (activeSort === 'recent') {
              const timeA = Math.max(...Object.values(a.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
              const timeB = Math.max(...Object.values(b.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
@@ -1001,7 +1021,7 @@ export default function App() {
            </div>
         )}
 
-        {searchCenter && (
+        {searchCenter && userLocation && (
            <div className="absolute top-4 right-4 z-[60] animate-fadeIn pointer-events-auto">
                <button onClick={() => { setSearchCenter(null); setMapCameraCenter(null); setRecenterTrigger({ lat: userLocation.lat, lng: userLocation.lng, _t: Date.now() }); }} className="bg-white dark:bg-gray-800 shadow-xl w-10 h-10 rounded-full border border-gray-100 dark:border-gray-700 flex items-center justify-center text-brand-600 dark:text-brand-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors tooltip-target" title="Return to my location">
                    <i className="fas fa-crosshairs text-md"></i>
