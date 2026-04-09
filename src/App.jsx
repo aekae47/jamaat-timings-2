@@ -14,6 +14,7 @@ const MapController = ({ targetCenter }) => {
     useEffect(() => {
         if (map && targetCenter) {
             map.panTo(targetCenter);
+            if (targetCenter.zoom) map.setZoom(targetCenter.zoom);
         }
     }, [map, targetCenter]);
     return null;
@@ -336,6 +337,14 @@ export default function App() {
 
     const isTimingPredicted = (iso) => {
         return false; // Stale timing concept removed as requested
+    };
+
+    const isTimePassed = (timeStr, bufferMins = 0, pid = null) => {
+        if (!timeStr || pid === 'eidFitr' || pid === 'eidAdha') return false;
+        const now = new Date(); const [h, m] = timeStr.split(':').map(Number);
+        const target = new Date(); target.setHours(h, m + bufferMins, 0, 0);
+        if (pid === 'fajr' && now.getHours() > 20) target.setDate(target.getDate() + 1);
+        return target < now;
     };
 
     const getTimeRemaining = (timeStr, pid = null) => {
@@ -758,7 +767,7 @@ export default function App() {
                     const pObj = prayersList.find(p => p.id === pid);
                     return (
                         <div key={pid}>
-                            <div className={`${seqIdx === 0 ? 'mt-1' : 'mt-6'} mb-2 flex items-center justify-between px-2 sticky top-0 py-2 z-10 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-b border-gray-100 dark:border-gray-800 rounded-lg`} dir="ltr">
+                            <div className={`${seqIdx === 0 ? 'mt-1' : 'mt-6'} mb-2 flex items-center justify-between px-3 sticky top-1 py-2 z-10 bg-white/75 dark:bg-gray-900/75 backdrop-blur-[8px] border border-white/40 dark:border-gray-500/40 rounded-[14px] shadow-[0_4px_12px_rgba(0,0,0,0.15)]`} dir="ltr">
                                 <div className="flex items-center pointer-events-none">
                                     <i className={`fas ${pObj.icon} text-xs ${seqIdx === 0 ? "text-brand-500" : "text-gray-400"}`}></i>
                                     <h3 className={`ml-2 text-xs font-sans font-bold uppercase tracking-widest ${seqIdx === 0 ? "text-brand-600 dark:text-brand-400" : "text-gray-400"}`}>{pObj.name}</h3>
@@ -776,12 +785,13 @@ export default function App() {
                                 const t = m.timings[pid];
                                 const [h, mins] = t.time.split(':');
                                 const rem = seqIdx === 0 ? getTimeRemaining(t.time, pid) : '';
-                                const passed = rem === '(Time Passed)';
+                                const exactPassed = rem === '(Time Passed)';
+                                const blurPassed = seqIdx === 0 ? isTimePassed(t.time, 2, pid) : false;
                                 const predicted = isTimingPredicted(t.lastUpdated) && !t.fixed;
                                 const taraweehData = (pid === 'isha' && appSettings.ramadan && m.timings['taraweeh']?.time) ? m.timings['taraweeh'].time : null;
 
                                 return (
-                                    <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className={`cursor-pointer flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] ${seqIdx === 0 ? (passed ? 'border-gray-300 opacity-60' : 'border-brand-500') : 'border-gray-200 dark:border-gray-700 opacity-80'} mb-2 transition-all`}>
+                                    <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className={`cursor-pointer flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] ${seqIdx === 0 ? (blurPassed ? 'border-gray-300 opacity-60' : 'border-brand-500') : 'border-gray-200 dark:border-gray-700 opacity-80'} mb-2 transition-all`}>
                                         <div className="flex-1 flex items-center gap-3">
                                             <i className="fas fa-mosque text-sm text-gray-400"></i>
                                             <div>
@@ -805,7 +815,7 @@ export default function App() {
                                                 </div>
                                             )}
                                             {seqIdx === 0 && (
-                                                <div className={`mt-1 text-[9px] font-semibold font-sans px-2 py-0.5 rounded-md ${passed ? 'text-gray-400 bg-gray-100 dark:bg-gray-700' : 'text-brand-700 bg-brand-100 dark:bg-brand-900/40'}`}>
+                                                <div className={`mt-1 text-[9px] font-semibold font-sans px-2 py-0.5 rounded-md ${exactPassed ? 'text-gray-400 bg-gray-100 dark:bg-gray-700' : 'text-brand-700 bg-brand-100 dark:bg-brand-900/40'}`}>
                                                     {rem}
                                                 </div>
                                             )}
@@ -1032,9 +1042,9 @@ export default function App() {
                                 </div>
                             )}
 
-                            {searchCenter && userLocation && (
+                            {userLocation && (
                                 <div className="absolute top-4 right-4 z-[60] animate-fadeIn pointer-events-auto">
-                                    <button onClick={() => { setSearchCenter(null); setMapCameraCenter(null); setRecenterTrigger({ lat: userLocation.lat, lng: userLocation.lng, _t: Date.now() }); }} className="bg-white dark:bg-gray-800 shadow-xl w-10 h-10 rounded-full border border-gray-100 dark:border-gray-700 flex items-center justify-center text-brand-600 dark:text-brand-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors tooltip-target" title="Return to my location">
+                                    <button onClick={() => { setSearchCenter(null); setMapCameraCenter(null); setRecenterTrigger({ lat: userLocation.lat, lng: userLocation.lng, _t: Date.now(), zoom: 16 }); }} className="bg-white dark:bg-gray-800 shadow-xl w-10 h-10 rounded-full border border-gray-100 dark:border-gray-700 flex items-center justify-center text-brand-600 dark:text-brand-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors tooltip-target" title="Return to my location">
                                         <i className="fas fa-crosshairs text-md"></i>
                                     </button>
                                 </div>
@@ -1079,12 +1089,18 @@ export default function App() {
                                             <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
                                                 {activeTimeLabel && (
                                                     <div className="flex flex-col items-center pointer-events-none whitespace-nowrap mb-1 z-10 gap-0">
-                                                        <mark className={`bg-white/95 dark:bg-gray-800/95 rounded-t-sm py-[3px] px-[6px] text-[8px] sm:text-[9px] font-sans font-bold leading-none ${isEmerald ? 'text-emerald-800 dark:text-emerald-300' : 'text-gray-800 dark:text-gray-200'}`}>{m.name}</mark>
-                                                        <mark className="bg-white/95 dark:bg-gray-800/95 py-[2px] px-[5px] text-[7px] font-sans uppercase font-bold text-gray-500 dark:text-gray-400 leading-none">{prayerName.slice(0, 6)}</mark>
-                                                        <mark className={`bg-white/95 dark:bg-gray-800/95 rounded-b-sm py-[3px] px-2 text-[10px] sm:text-[11px] font-bold font-anonymous ${isEmerald ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-300'} flex items-baseline gap-0.5 leading-none`}>
-                                                            <span>{activeTimeLabel}</span>
-                                                            <span className="text-[7.5px] font-sans opacity-80 mt-[1px]">{activeAmpm}</span>
-                                                        </mark>
+                                                        <div className="inline-block w-fit border border-white/40 dark:border-gray-500/40 bg-white/75 dark:bg-gray-800/75 backdrop-blur-[8px] rounded-md px-1.5 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans">
+                                                            <div className="font-semibold text-[9px] text-gray-800 dark:text-gray-100 leading-tight">{m.name}</div>
+                                                        </div>
+                                                        <div className="text-[7.5px] text-gray-700 dark:text-gray-200 font-bold uppercase tracking-widest my-0.5 leading-none [text-shadow:_0_0_4px_#fff,_0_1px_1px_#fff] dark:[text-shadow:_0_0_4px_#000,_0_1px_1px_#000]">
+                                                            {prayerName.slice(0, 6)}
+                                                        </div>
+                                                        <div className="inline-block w-fit border border-white/40 dark:border-gray-500/40 bg-white/75 dark:bg-gray-800/75 backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans">
+                                                            <div className={`text-[12px] font-bold leading-tight flex items-baseline justify-center gap-0.5 ${isEmerald ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-400'}`}>
+                                                                <span className="font-anonymous">{activeTimeLabel}</span>
+                                                                <span className="text-[6.5px] opacity-80 font-sans font-normal">{activeAmpm}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 )}
                                                 <div className="relative flex justify-center">
