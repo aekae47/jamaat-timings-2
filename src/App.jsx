@@ -1092,13 +1092,15 @@ export default function App() {
                                                         <div className="inline-block w-fit border border-white/40 dark:border-gray-500/40 bg-white/75 dark:bg-gray-800/75 backdrop-blur-[8px] rounded-md px-1.5 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans">
                                                             <div className="font-semibold text-[9px] text-gray-800 dark:text-gray-100 leading-tight">{m.name}</div>
                                                         </div>
-                                                        <div className="text-[7.5px] text-gray-700 dark:text-gray-200 font-bold uppercase tracking-widest my-0.5 leading-none [text-shadow:_0_0_4px_#fff,_0_1px_1px_#fff] dark:[text-shadow:_0_0_4px_#000,_0_1px_1px_#000]">
-                                                            {prayerName.slice(0, 6)}
-                                                        </div>
-                                                        <div className="inline-block w-fit border border-white/40 dark:border-gray-500/40 bg-white/75 dark:bg-gray-800/75 backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans">
-                                                            <div className={`text-[12px] font-bold leading-tight flex items-baseline justify-center gap-0.5 ${isEmerald ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-400'}`}>
-                                                                <span className="font-anonymous">{activeTimeLabel}</span>
-                                                                <span className="text-[6.5px] opacity-80 font-sans font-normal">{activeAmpm}</span>
+                                                        <div className={`inline-block w-fit border border-white/40 dark:border-gray-600/40 ${isEmerald ? 'bg-emerald-50/85 dark:bg-emerald-900/60' : 'bg-brand-50/85 dark:bg-brand-900/60'} backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans mt-[1px]`}>
+                                                            <div className="flex items-center justify-center gap-1.5 h-full">
+                                                                <span className="text-[7.5px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
+                                                                    {prayerName.slice(0, 6)}
+                                                                </span>
+                                                                <div className={`text-[12px] font-bold leading-none flex items-baseline ${isEmerald ? 'text-emerald-700 dark:text-emerald-300' : 'text-brand-700 dark:text-brand-300'}`}>
+                                                                    <span className="font-anonymous">{activeTimeLabel}</span>
+                                                                    <span className="text-[6.5px] opacity-80 font-sans font-normal ml-[1px]">{activeAmpm}</span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
