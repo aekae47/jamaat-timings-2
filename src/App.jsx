@@ -674,7 +674,12 @@ export default function App() {
           return (
               <div className="pb-10">
                   <div className="mt-2 mb-2 flex items-center justify-between px-1">
-                      <div className="flex items-center gap-2"><i className="fas fa-users text-xs text-emerald-600"></i><h3 className="text-xs font-sans font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Jummah Timings</h3></div>
+                      <div className="flex items-center pointer-events-none">
+                          <i className="fas fa-users text-xs text-emerald-600"></i>
+                          <h3 className="ml-2 text-xs font-sans font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Jummah Timings</h3>
+                          <span className="mx-2 h-4 w-px bg-emerald-400 dark:bg-emerald-500"></span>
+                          <span className="font-arabic text-md text-emerald-700 dark:text-emerald-400" dir="rtl">وْقَاتُ ٱلْجُمُعَةِ</span>
+                      </div>
                   </div>
                   {jummaList.map(m => {
                       const t = m.timings.jumma.time; const [h, mins] = t.split(':');
@@ -1063,19 +1068,25 @@ export default function App() {
                     activeAmpm = hrs24 >= 12 ? 'PM' : 'AM';
                     activeTimeLabel = `${hrs}:${min}`;
                 }
-                
+                const pObj = prayersList.find(p => p.id === prayerToDisplay);
+                const prayerName = pObj ? pObj.name : '';
+                const isEmerald = currentList === 'Jummah';
+
                 return (
                     <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="relative z-0 hover:z-[60] group">
                         <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
                             {activeTimeLabel && (
-                                <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-sm text-[10px] sm:text-[11px] font-bold font-anonymous text-brand-700 dark:text-brand-300 pointer-events-none whitespace-nowrap mb-0.5 border border-gray-100 dark:border-gray-700 flex items-baseline gap-0.5">
-                                    <span>{activeTimeLabel}</span>
-                                    <span className="text-[7.5px] font-sans opacity-80">{activeAmpm}</span>
+                                <div className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-sm flex flex-col items-center pointer-events-none whitespace-nowrap mb-0.5 border border-gray-100 dark:border-gray-700`}>
+                                    <span className="text-[7px] font-sans uppercase font-bold text-gray-400 dark:text-gray-500 leading-none mb-[2px]">{prayerName.slice(0,6)}</span>
+                                    <div className={`text-[10px] sm:text-[11px] font-bold font-anonymous ${isEmerald ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-300'} flex items-baseline gap-0.5 leading-none`}>
+                                        <span>{activeTimeLabel}</span>
+                                        <span className="text-[7.5px] font-sans opacity-80">{activeAmpm}</span>
+                                    </div>
                                 </div>
                             )}
                             <div className="relative flex justify-center">
                                 <svg width="20" height="28" viewBox="0 0 24 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 34 12 34C12 34 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill={appSettings.theme === 'dark' ? '#0d9488' : '#14b8a6'} />
+                                    <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 34 12 34C12 34 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill={isEmerald ? (appSettings.theme === 'dark' ? '#34d399' : '#059669') : (appSettings.theme === 'dark' ? '#0d9488' : '#14b8a6')} />
                                 </svg>
                                 <i className="fas fa-mosque absolute text-white pointer-events-none" style={{ top: '7px', fontSize: '9px' }}></i>
                             </div>
@@ -1094,7 +1105,7 @@ export default function App() {
                     </div>
                     <div className="w-full px-4 pb-1">
                         <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans py-0.5">
-                            {['Nearby', 'All', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites','Home','Work'].includes(l))].map(list => (
+                            {['Nearby', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites','Home','Work'].includes(l))].map(list => (
                                 <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); setMapExpanded(false); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-transparent dark:border-gray-700'}`}>
                                     {list}
                                 </button>
