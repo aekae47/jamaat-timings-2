@@ -33,7 +33,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'asia-south1');
 const extractLocationCall = httpsCallable(functions, 'extractLocation');
 const provider = new GoogleAuthProvider();
 
@@ -94,6 +94,7 @@ export default function App() {
     const [mapExpanded, setMapExpanded] = useState(false);
     const [sortByNext, setSortByNext] = useState('time');
     const [sortByList, setSortByList] = useState('distance');
+    const [sortByJummah, setSortByJummah] = useState('time');
     const [visibleLimit, setVisibleLimit] = useState(20);
 
     const [searchCenter, setSearchCenter] = useState(null);
@@ -662,7 +663,7 @@ export default function App() {
             filtered = filtered.filter(m => list.includes(m.id));
         }
 
-        if (searchQuery) {
+        if (searchQuery && viewMode === 'list') {
             const lowerQ = searchQuery.toLowerCase();
             filtered = filtered.filter(m => m.name.toLowerCase().includes(lowerQ) || m.area.toLowerCase().includes(lowerQ));
         }
@@ -706,8 +707,13 @@ export default function App() {
 
         const getSortedSublist = (mosquesArr, pid) => {
             let list = mosquesArr.filter(m => m.timings?.[pid]?.time);
-            if (shouldSortByTimeLocally) {
+            const isCurrentlyJummah = currentList === 'Jummah';
+            const currentSort = isCurrentlyJummah ? sortByJummah : sortByNext;
+            
+            if (currentSort === 'time') {
                 list = [...list].sort((a, b) => a.timings[pid].time.localeCompare(b.timings[pid].time));
+            } else if (currentSort === 'distance') {
+                list = [...list].sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
             }
             return list;
         };
@@ -717,13 +723,16 @@ export default function App() {
             if (!jummaList.length) return <div className="text-center mt-10 text-gray-400 text-xs font-bold uppercase tracking-widest">No Jummah timings found.</div>;
             return (
                 <div className="pb-10">
-                    <div className="mt-2 mb-2 flex items-center justify-between px-1">
+                    <div className="mt-1 mb-2 flex items-center justify-between px-3 sticky top-1 py-2 z-10 bg-white/75 dark:bg-gray-900/75 backdrop-blur-[8px] border border-white/40 dark:border-gray-500/40 rounded-[14px] shadow-[0_4px_12px_rgba(0,0,0,0.15)]" dir="ltr">
                         <div className="flex items-center pointer-events-none">
                             <i className="fas fa-users text-xs text-emerald-600"></i>
-                            <h3 className="ml-2 text-xs font-sans font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Jummah Timings</h3>
+                            <h3 className="ml-2 text-xs font-sans font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Jummah</h3>
                             <span className="mx-2 h-4 w-px bg-emerald-400 dark:bg-emerald-500"></span>
                             <span className="font-arabic text-md text-emerald-700 dark:text-emerald-400" dir="rtl">أَوْقَاتُ ٱلْجُمُعَةِ</span>
                         </div>
+                        <button onClick={() => setSortByJummah(prev => prev === 'time' ? 'distance' : 'time')} className="pointer-events-auto text-[10px] font-bold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-xl transition-all shadow-sm border border-gray-200 dark:border-gray-700">
+                            Sort by {sortByJummah === 'time' ? 'Distance' : 'Time'} <i className="fas fa-sort ml-1 opacity-70"></i>
+                        </button>
                     </div>
                     {jummaList.map(m => {
                         const t = m.timings.jumma.time; const [h, mins] = t.split(':');
@@ -1116,16 +1125,19 @@ export default function App() {
                                     const pObj = prayersList.find(p => p.id === prayerToDisplay);
                                     const prayerName = pObj ? pObj.name : '';
                                     const isEmerald = currentList === 'Jummah';
+                                    const timePassed = activeTimeStr ? isTimePassed(activeTimeStr, 2, prayerToDisplay) : false;
 
                                     return (
                                         <AdvancedMarker key={m.id} position={m.coordinates} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className="relative z-0 hover:z-[60] group">
                                             <div className="flex flex-col items-center drop-shadow-md transform transition-transform group-hover:scale-110">
-                                                {activeTimeLabel && (
-                                                    <div className="flex flex-col items-center pointer-events-none whitespace-nowrap mb-1 z-10 gap-0">
+                                                <div className="flex flex-col items-center pointer-events-none whitespace-nowrap mb-1 z-10 gap-0">
+                                                    {m.name && (
                                                         <div className="inline-block w-fit border border-white/40 dark:border-gray-500/40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-[8px] rounded-md px-1.5 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans">
                                                             <div className="font-bold text-[9px] text-gray-800 dark:text-gray-100 leading-tight">{m.name}</div>
                                                         </div>
-                                                        <div className={`inline-block w-fit border border-white/40 dark:border-gray-600/40 ${isEmerald ? 'bg-emerald-50/85 dark:bg-emerald-900/60' : 'bg-brand-50/85 dark:bg-brand-900/60'} backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans mt-[1px]`}>
+                                                    )}
+                                                    {activeTimeLabel && (
+                                                        <div className={`inline-block w-fit border border-white/40 dark:border-gray-600/40 ${isEmerald ? 'bg-emerald-50/85 dark:bg-emerald-900/60' : 'bg-brand-50/85 dark:bg-brand-900/60'} backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans mt-[1px] ${timePassed ? 'opacity-40 grayscale-[0.5]' : ''}`}>
                                                             <div className="flex items-center justify-center gap-1.5 h-full">
                                                                 <span className="text-[7.5px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
                                                                     {prayerName.slice(0, 6)}
@@ -1136,8 +1148,8 @@ export default function App() {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
                                                 <div className="relative flex justify-center">
                                                     <svg width="20" height="28" viewBox="0 0 24 34" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 34 12 34C12 34 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill={isEmerald ? (appSettings.theme === 'dark' ? '#34d399' : '#059669') : (appSettings.theme === 'dark' ? '#0d9488' : '#14b8a6')} />
