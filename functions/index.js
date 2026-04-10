@@ -20,13 +20,22 @@ exports.extractLocation = onCall({region: "asia-south1"}, async (request) => {
     const res = await fetch(url, {method: "GET", redirect: "follow"});
     const finalUrl = res.url;
 
-    const match = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    // Try multiple patterns to extract coordinates
+    const patterns = [
+      /@(-?\d+\.\d+),(-?\d+\.\d+)/, // Standard @lat,lng
+      /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, // Data parameters !3dLat!4dLng
+      /query=(-?\d+\.\d+),(-?\d+\.\d+)/, // Query parameters
+      /\?q=(-?\d+\.\d+),(-?\d+\.\d+)/, // Search parameters
+    ];
 
-    if (match) {
-      return {
-        lat: parseFloat(match[1]),
-        lng: parseFloat(match[2]),
-      };
+    for (const pattern of patterns) {
+      const match = finalUrl.match(pattern);
+      if (match) {
+        return {
+          lat: parseFloat(match[1]),
+          lng: parseFloat(match[2]),
+        };
+      }
     }
 
     return {lat: null, lng: null};
