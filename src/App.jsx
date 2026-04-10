@@ -152,12 +152,15 @@ export default function App() {
         };
 
         if ("geolocation" in navigator) {
+            // First attempt to get a fast location (possibly cached)
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
                     setUserLocation(coords);
                     setLocStatus('granted');
                     localStorage.setItem('userLocation', JSON.stringify(coords));
+                    // Auto-recenter on first fresh location
+                    setRecenterTrigger({ lat: coords.lat, lng: coords.lng, _t: Date.now(), zoom: 16 });
 
                     // Reverse Geocode for Dynamic City
                     try {
@@ -175,8 +178,24 @@ export default function App() {
                         }
                     } catch (e) { console.error("Reverse geocoding failed", e); }
                 },
-                fallbackToIP,
-                { timeout: 30000, maximumAge: 0, enableHighAccuracy: true }
+                (err) => {
+                    // If high accuracy failed or timed out, try once more with lower accuracy before IP fallback
+                    if (err.code === err.TIMEOUT || err.code === err.POSITION_UNAVAILABLE) {
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                                setUserLocation(coords);
+                                setLocStatus('granted');
+                                setRecenterTrigger({ lat: coords.lat, lng: coords.lng, _t: Date.now(), zoom: 16 });
+                            },
+                            fallbackToIP,
+                            { timeout: 5000, maximumAge: 60000, enableHighAccuracy: false }
+                        );
+                    } else {
+                        fallbackToIP();
+                    }
+                },
+                { timeout: 8000, maximumAge: 0, enableHighAccuracy: true }
             );
         } else {
             fallbackToIP();
@@ -1065,7 +1084,7 @@ export default function App() {
                             )}
 
                             <Map
-                                key={`${appSettings.theme}-${userLocation ? 'loc' : 'noloc'}`}
+                                key={`${appSettings.theme}-${locStatus}`}
                                 defaultZoom={16}
                                 defaultCenter={userLocation || { lat: 17.3850, lng: 78.4867 }}
                                 disableDefaultUI={true}
