@@ -684,7 +684,15 @@ export default function App() {
                 return getSafeDist(a.distance) - getSafeDist(b.distance);
             }
 
-            if (activeSort === 'distance') return getSafeDist(a.distance) - getSafeDist(b.distance);
+            if (activeSort === 'distance') {
+                const distA = getSafeDist(a.distance);
+                const distB = getSafeDist(b.distance);
+                if (distA !== distB) return distA - distB;
+                // Fallback to recent
+                const timeA = Math.max(...Object.values(a.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
+                const timeB = Math.max(...Object.values(b.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
+                return timeB - timeA;
+            }
             if (activeSort === 'recent') {
                 const timeA = Math.max(...Object.values(a.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
                 const timeB = Math.max(...Object.values(b.timings || {}).map(t => new Date(t.lastUpdated || 0).getTime()));
@@ -696,8 +704,8 @@ export default function App() {
             if (idxA === -1) return 1; if (idxB === -1) return -1; return idxA - idxB;
         });
 
-        return filtered.slice(0, currentList === 'Jummah' ? visibleLimit * 2 : visibleLimit);
-    }, [mosques, appSettings.city, currentList, searchQuery, customOrder, searchCenter, userLocation, sortByNext, sortByList, visibleLimit, viewMode, currentTargetPrayer, personalLists]);
+        return filtered;
+    }, [mosques, appSettings.city, currentList, searchQuery, customOrder, searchCenter, userLocation, sortByNext, sortByList, viewMode, currentTargetPrayer, personalLists]);
 
     const selectedMosqueDetail = mosques.find(m => m.id === selectedMosqueId);
 
@@ -856,7 +864,7 @@ export default function App() {
                                                     {getRelativeTime(t.lastUpdated)}
                                                 </div>
                                             )}
-                                            {seqIdx === 0 && (
+                                            {seqIdx === 0 && rem && (
                                                 <div className={`mt-1 text-[9px] font-semibold font-sans px-2 py-0.5 rounded-md ${exactPassed ? 'text-gray-400 bg-gray-100 dark:bg-gray-700' : 'text-brand-700 bg-brand-100 dark:bg-brand-900/40'}`}>
                                                     {rem}
                                                 </div>
@@ -869,8 +877,8 @@ export default function App() {
                     );
                 })}
 
-                {visibleLimit < mosques.length && (
-                    <button onClick={() => setVisibleLimit(prev => prev + 20)} className="w-full py-2 mt-2 bg-gray-100 dark:bg-gray-800 text-gray-500 text-[10px] font-bold uppercase rounded-xl">Load More</button>
+                {visibleLimit < activeMosques.length && (
+                    <button onClick={() => setVisibleLimit(prev => prev + 20)} className="w-full py-4 mt-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-md text-brand-600 dark:text-brand-400 text-xs font-bold uppercase rounded-2xl shadow-sm border border-brand-100 dark:border-brand-900/40 hover:bg-white dark:hover:bg-gray-800 transition-all">Show More Masājid <i className="fas fa-chevron-down ml-2"></i></button>
                 )}
             </div>
         );
@@ -888,7 +896,7 @@ export default function App() {
                         <option value="custom">Custom Order</option>
                     </select>
                 </div>
-                {activeMosques.map(m => {
+                {activeMosques.slice(0, visibleLimit).map(m => {
                     let specHTML = [];
                     specialPrayersList.forEach(sp => {
                         if (sp.id === 'taraweeh') return;
@@ -957,7 +965,7 @@ export default function App() {
                     );
                 })}
                 {visibleLimit < activeMosques.length && (
-                    <button onClick={() => setVisibleLimit(prev => prev + 20)} className="w-full py-2 mt-2 bg-gray-100 dark:bg-gray-800 text-gray-500 text-[10px] font-bold uppercase rounded-xl">Load More</button>
+                    <button onClick={() => setVisibleLimit(prev => prev + 20)} className="w-full py-4 mt-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-md text-brand-600 dark:text-brand-400 text-xs font-bold uppercase rounded-2xl shadow-sm border border-brand-100 dark:border-brand-900/40 hover:bg-white dark:hover:bg-gray-800 transition-all">Show More Masājid <i className="fas fa-chevron-down ml-2"></i></button>
                 )}
             </div>
         );
@@ -1109,7 +1117,7 @@ export default function App() {
                                         <div className="w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-lg pulse-ring"></div>
                                     </AdvancedMarker>
                                 )}
-                                {activeMosques.map(m => {
+                                {activeMosques.slice(0, 40).map(m => {
                                     if (!m.coordinates) return null;
                                     const prayerToDisplay = currentList === 'Jummah' ? 'jumma' : currentTargetPrayer;
                                     const activeTimeStr = m.timings?.[prayerToDisplay]?.time;
@@ -1137,12 +1145,12 @@ export default function App() {
                                                         </div>
                                                     )}
                                                     {activeTimeLabel && (
-                                                        <div className={`inline-block w-fit border border-white/40 dark:border-gray-600/40 ${isEmerald ? 'bg-emerald-50/85 dark:bg-emerald-900/60' : 'bg-brand-50/85 dark:bg-brand-900/60'} backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans mt-[1px] ${timePassed ? 'opacity-40 grayscale-[0.5]' : ''}`}>
+                                                        <div className={`inline-block w-fit border border-white/40 dark:border-gray-600/40 ${timePassed ? 'bg-gray-100/90 dark:bg-gray-700/90 text-gray-500' : (isEmerald ? 'bg-emerald-50/85 dark:bg-emerald-900/60' : 'bg-brand-50/85 dark:bg-brand-900/60')} backdrop-blur-[8px] rounded-lg px-2 py-0.5 shadow-[0_2px_6px_rgba(0,0,0,0.15)] text-center font-sans mt-[1px]`}>
                                                             <div className="flex items-center justify-center gap-1.5 h-full">
-                                                                <span className="text-[7.5px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
+                                                                <span className={`text-[7.5px] uppercase font-bold tracking-wider ${timePassed ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'}`}>
                                                                     {prayerName.slice(0, 6)}
                                                                 </span>
-                                                                <div className={`text-[12px] font-bold leading-none flex items-baseline ${isEmerald ? 'text-emerald-700 dark:text-emerald-300' : 'text-brand-700 dark:text-brand-300'}`}>
+                                                                <div className={`text-[12px] font-bold leading-none flex items-baseline ${timePassed ? 'text-gray-500 dark:text-gray-400' : (isEmerald ? 'text-emerald-700 dark:text-emerald-300' : 'text-brand-700 dark:text-brand-300')}`}>
                                                                     <span className="font-anonymous">{activeTimeLabel}</span>
                                                                     <span className="text-[6.5px] opacity-80 font-sans font-normal ml-[1px]">{activeAmpm}</span>
                                                                 </div>
