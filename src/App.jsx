@@ -576,8 +576,22 @@ export default function App() {
         setSelectedMosqueId(id);
         if (id) {
             const m = mosques.find(x => x.id === id);
-            if (m) setMosqueFormData({ name: m.name, area: m.area, locationLink: m.locationLink || '', address: m.address || '', coordinates: m.coordinates || null });
-        } else setMosqueFormData({ name: 'Masjid-e-', area: '', locationLink: '', address: '', coordinates: null });
+            if (m) setMosqueFormData({ 
+                name: m.name, 
+                area: m.area, 
+                locationLink: m.locationLink || '', 
+                address: m.address || '', 
+                coordinates: m.coordinates || { lat: '', lng: '' } 
+            });
+        } else {
+            setMosqueFormData({ 
+                name: 'Masjid-e-', 
+                area: '', 
+                locationLink: '', 
+                address: '', 
+                coordinates: { lat: '', lng: '' } 
+            });
+        }
         setActiveModal('info');
     };
 
@@ -1466,31 +1480,29 @@ export default function App() {
                                 </div>
                             </div>
 
-                            {mosqueFormData.coordinates && (
-                                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 mt-1">
-                                    <div className="flex items-center gap-2 flex-1">
-                                        <i className="fas fa-map-pin text-gray-400 text-[10px] ml-1"></i>
-                                        <div className="flex items-center bg-white dark:bg-gray-700/50 rounded-md px-2 py-1.5 border border-gray-200 dark:border-gray-600 shadow-inner w-full max-w-[170px]">
-                                            <input type="text" value={mosqueFormData.coordinates.lat || ''} onChange={(e) => {
-                                                let val = e.target.value;
-                                                if (val.includes(',')) {
-                                                    const parts = val.split(',');
-                                                    setMosqueFormData({ ...mosqueFormData, coordinates: { lat: parts[0].trim(), lng: parts[1].trim() } });
-                                                } else {
-                                                    setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lat: val } });
-                                                }
-                                            }} className="w-full bg-transparent text-[11px] font-bold text-gray-800 dark:text-gray-200 outline-none text-center font-anonymous placeholder-gray-300" placeholder="Lat" />
-                                            <span className="text-gray-300 font-bold mx-0.5 text-[10px]">,</span>
-                                            <input type="text" value={mosqueFormData.coordinates.lng || ''} onChange={(e) => setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lng: e.target.value } })} className="w-full bg-transparent text-[11px] font-bold text-gray-800 dark:text-gray-200 outline-none text-center font-anonymous placeholder-gray-300" placeholder="Lng" />
-                                        </div>
+                            <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 mt-1">
+                                <div className="flex items-center gap-2 flex-1">
+                                    <i className="fas fa-map-pin text-gray-400 text-[10px] ml-1"></i>
+                                    <div className="flex items-center bg-white dark:bg-gray-700/50 rounded-md px-2 py-1.5 border border-gray-200 dark:border-gray-600 shadow-inner w-full max-w-[170px]">
+                                        <input type="text" value={mosqueFormData.coordinates?.lat || ''} onChange={(e) => {
+                                            let val = e.target.value;
+                                            if (val.includes(',')) {
+                                                const parts = val.split(',');
+                                                setMosqueFormData({ ...mosqueFormData, coordinates: { lat: parts[0].trim(), lng: parts[1].trim() } });
+                                            } else {
+                                                setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lat: val } });
+                                            }
+                                        }} className="w-full bg-transparent text-[11px] font-bold text-gray-800 dark:text-gray-200 outline-none text-center font-anonymous placeholder-gray-300" placeholder="Lat" />
+                                        <span className="text-gray-300 font-bold mx-0.5 text-[10px]">,</span>
+                                        <input type="text" value={mosqueFormData.coordinates?.lng || ''} onChange={(e) => setMosqueFormData({ ...mosqueFormData, coordinates: { ...mosqueFormData.coordinates, lng: e.target.value } })} className="w-full bg-transparent text-[11px] font-bold text-gray-800 dark:text-gray-200 outline-none text-center font-anonymous placeholder-gray-300" placeholder="Lng" />
                                     </div>
-                                    {userLocation && mosqueFormData.coordinates.lat && mosqueFormData.coordinates.lng && (
-                                        <span className="text-[9px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-1 rounded font-bold tracking-wider whitespace-nowrap">
-                                            {getDistance(parseFloat(userLocation.lat), parseFloat(userLocation.lng), parseFloat(mosqueFormData.coordinates.lat), parseFloat(mosqueFormData.coordinates.lng)).toFixed(2)} km
-                                        </span>
-                                    )}
                                 </div>
-                            )}
+                                {userLocation && mosqueFormData.coordinates?.lat && mosqueFormData.coordinates?.lng && !isNaN(parseFloat(mosqueFormData.coordinates.lat)) && !isNaN(parseFloat(mosqueFormData.coordinates.lng)) && (
+                                    <span className="text-[9px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-1 rounded font-bold tracking-wider whitespace-nowrap">
+                                        {getDistance(parseFloat(userLocation.lat), parseFloat(userLocation.lng), parseFloat(mosqueFormData.coordinates.lat), parseFloat(mosqueFormData.coordinates.lng)).toFixed(2)} km
+                                    </span>
+                                )}
+                            </div>
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Address & Notes</label>
                                 <textarea value={mosqueFormData.address} onChange={e => setMosqueFormData({ ...mosqueFormData, address: e.target.value })} rows="2" className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-medium text-gray-600 dark:text-white outline-none resize-none" placeholder="Full address or special instructions..."></textarea>
