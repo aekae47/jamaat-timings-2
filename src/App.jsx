@@ -1417,63 +1417,114 @@ export default function App() {
 
             {/* Details Modal */}
             {activeModal === 'detail' && selectedMosqueDetail && (
-                <div onClick={(e) => handleModalClickOutside(e, 'detail')} className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm max-h-[85vh] shadow-2xl flex flex-col animate-card overflow-hidden border border-gray-100 dark:border-gray-800">
-                        <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900 flex justify-between items-start">
-                            <div className="flex items-start gap-3">
-                                <i className="fas fa-mosque text-brand-600 text-xl mt-1"></i>
-                                <div>
-                                    <h2 className="text-xl font-sans font-bold text-gray-900 dark:text-white leading-tight">{selectedMosqueDetail.name}</h2>
-                                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1 font-sans">{selectedMosqueDetail.area}</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-2">
-                                {(userRole === 'admin' || userRole === 'volunteer') && (
-                                    <button onClick={() => tryAction('edit', () => openMosqueModal(selectedMosqueId))} className="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center hover:bg-brand-100"><i className="fas fa-pencil-alt text-xs"></i></button>
-                                )}
-                                <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center"><i className="fas fa-times"></i></button>
-                            </div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-5 font-sans">
-                            <div className="space-y-2 cursor-pointer" onClick={() => tryAction('edit', () => openEditTiming(selectedMosqueId))}>
-                                {['fajr', 'zuhr', 'asr', 'isha', 'jumma'].map(pid => {
-                                    const data = selectedMosqueDetail.timings[pid];
-                                    const hasTime = data && data.time;
-                                    const predicted = hasTime && isTimingPredicted(data.lastUpdated) && !data.fixed;
-                                    const pObj = prayersList.find(p => p.id === pid);
-                                    const taraweeh = (pid === 'isha' && appSettings.ramadan && selectedMosqueDetail.timings['taraweeh']?.time) ? selectedMosqueDetail.timings['taraweeh'].time : null;
-
-                                    return (
-                                        <div key={pid} className={`flex justify-between items-center p-3.5 rounded-xl mb-2 border transition ${!hasTime ? 'opacity-40' : ''} bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700`}>
-                                            <span className="flex items-center" dir="ltr">
-                                                <span className="font-bold text-sm text-gray-700 dark:text-gray-300 font-sans flex items-center gap-1.5"><i className={`fas ${pObj.icon} text-xs w-4 text-gray-500`}></i>{pObj.name}</span>
-                                                <span className="mx-2 h-4 w-px bg-gray-300 dark:bg-gray-600"></span>
-                                                <span className="font-arabic text-sm font-bold text-gray-700 dark:text-gray-300" dir="rtl">{pObj.arabic}</span>
-                                            </span>
-                                            <div className="text-right flex flex-col items-end leading-none tabular-nums relative">
-                                                <span className={hasTime ? 'font-anonymous text-lg font-bold text-gray-900 dark:text-white' : 'text-[10px] text-gray-400 italic'} dangerouslySetInnerHTML={{ __html: hasTime ? formatTime12(data.time, pid) : '(Timing not entered)' }}></span>
-                                                {predicted && <span className="text-amber-500 absolute -top-1 -left-2 text-[10px]" title="Predicted Timing">*</span>}
-                                                {hasTime && data.lastUpdated && !data.fixed && <div className="w-full text-center font-ptsans text-[9px] text-gray-400/80 -mt-1">{getRelativeTime(data.lastUpdated)}</div>}
-                                                {taraweeh && <div className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded bg-amber-400/90 dark:bg-amber-500 text-black">Tarāweeḥ: <span className="font-anonymous ml-1">{taraweeh}</span> Pārahs</div>}
-                                            </div>
+                <div onClick={(e) => handleModalClickOutside(e, 'detail')} className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-[2rem] w-full max-w-sm max-h-[85vh] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col animate-card overflow-hidden border border-gray-100 dark:border-gray-800">
+                        {/* Header Section */}
+                        <div className="p-6 pb-4 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-100 dark:border-gray-800">
+                            <div className="flex justify-between items-start">
+                                <div className="flex gap-4 min-w-0">
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 shadow-sm shrink-0">
+                                        <i className="fas fa-mosque text-xl"></i>
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h2 className="text-lg sm:text-xl font-sans font-bold text-gray-900 dark:text-white leading-tight break-words">{selectedMosqueDetail.name}</h2>
+                                        <div className="flex flex-wrap items-center gap-2 mt-1.5 font-sans">
+                                            <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{selectedMosqueDetail.area}</span>
+                                            {selectedMosqueDetail.distance && selectedMosqueDetail.distance !== Infinity && (
+                                                <span className="inline-flex items-center gap-1.5 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-2 py-0.5 rounded-full font-bold text-[9px] shadow-sm">
+                                                    <i className="fas fa-location-arrow text-[8px]"></i> {selectedMosqueDetail.distance.toFixed(1)} km Nearby
+                                                </span>
+                                            )}
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                </div>
+                                <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 text-gray-400 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 hover:text-red-500 transition-colors shrink-0">
+                                    <i className="fas fa-times"></i>
+                                </button>
                             </div>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="flex-1 overflow-y-auto px-6 py-5 no-scrollbar scroll-smooth">
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1 font-sans">Full Jama'at Schedule</h3>
+                                    {(userRole === 'admin' || userRole === 'volunteer') && (
+                                        <button onClick={() => tryAction('edit', () => openMosqueModal(selectedMosqueId))} className="text-[9px] font-bold text-brand-600 dark:text-brand-400 uppercase flex items-center gap-1 px-2 py-1 rounded-lg bg-brand-50 dark:bg-brand-900/20">
+                                            <i className="fas fa-pencil-alt text-[8px]"></i> Edit Masjid
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                <div onClick={() => tryAction('edit', () => openEditTiming(selectedMosqueId))} className="space-y-2.5 cursor-pointer">
+                                    {['fajr', 'zuhr', 'asr', 'isha', 'jumma'].map(pid => {
+                                        const data = selectedMosqueDetail.timings[pid];
+                                        const hasTime = data && data.time;
+                                        const pObj = prayersList.find(p => p.id === pid);
+                                        const isJummah = pid === 'jumma';
+                                        const isCurrent = pid === currentTargetPrayer;
+                                        const taraweeh = (pid === 'isha' && appSettings.ramadan && selectedMosqueDetail.timings['taraweeh']?.time) ? selectedMosqueDetail.timings['taraweeh'].time : null;
+
+                                        return (
+                                            <div key={pid} className={`group flex justify-between items-center p-4 rounded-2xl border transition-all relative ${!hasTime ? 'opacity-30' : ''} ${isCurrent ? 'bg-brand-50/50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 ring-2 ring-brand-500/10' : (isJummah ? 'bg-emerald-50/50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' : 'bg-gray-50/30 dark:bg-gray-800/20 border-gray-100 dark:border-gray-800/10')} hover:scale-[1.01] active:scale-[0.99]`}>
+                                                <div className="flex items-center font-sans min-w-0">
+                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center mr-3 shadow-sm shrink-0 ${isCurrent ? 'bg-brand-500 text-white' : (isJummah ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-gray-700 text-gray-400')}`}>
+                                                        <i className={`fas ${pObj.icon} text-[10px]`}></i>
+                                                    </div>
+                                                    <div className="flex flex-col items-center min-w-0">
+                                                        <div className="relative px-2">
+                                                            <div className={`text-[11px] font-bold uppercase tracking-tight text-center ${isCurrent ? 'text-brand-700 dark:text-brand-300' : 'text-gray-500'}`}>
+                                                                {pObj.name}
+                                                            </div>
+                                                            {isCurrent && <span className="absolute -right-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-brand-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(20,184,166,0.5)]"></span>}
+                                                        </div>
+                                                        <div className="font-arabic text-sm font-bold text-gray-400/80 mt-0.5 text-center" dir="rtl">{pObj.arabic}</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="text-right flex flex-col items-center tabular-nums relative leading-none">
+                                                    <div className={hasTime ? `font-anonymous text-xl font-bold ${isCurrent ? 'text-brand-700 dark:text-brand-300' : 'text-gray-900 dark:text-white'}` : 'text-[10px] text-gray-400 italic'}>
+                                                        {hasTime ? formatTime12(data.time, pid).split('<')[0] : 'N/A'}
+                                                        {hasTime && <span className="text-[9px] ml-1 font-sans font-medium uppercase opacity-50">{data.time.split(':')[0] >= 12 ? 'pm' : 'am'}</span>}
+                                                    </div>
+                                                    {hasTime && data.lastUpdated && !data.fixed && (
+                                                        <div className="text-[8px] font-bold text-gray-400 mt-1 uppercase tracking-tighter bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-md text-center">
+                                                            {getRelativeTime(data.lastUpdated)}
+                                                        </div>
+                                                    )}
+                                                    {taraweeh && <div className="mt-1.5 px-2 py-1 rounded-lg bg-amber-400 dark:bg-amber-600 text-[8px] font-bold font-sans text-amber-900 dark:text-amber-50 shadow-sm leading-none whitespace-nowrap">Tarāweeḥ: <span className="font-anonymous uppercase text-[9px]">{taraweeh}</span> p</div>}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            
                             {selectedMosqueDetail.address && (
-                                <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-4 border border-gray-100 dark:border-gray-700 mt-4 mb-2">
-                                    <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Notes</h4>
-                                    <p className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">{selectedMosqueDetail.address}</p>
+                                <div className="bg-gray-50 dark:bg-gray-800/40 rounded-3xl p-5 border border-gray-100 dark:border-gray-800 mt-6 shadow-inner">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <i className="fas fa-info-circle text-gray-400 text-xs"></i>
+                                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans">Masjid Notes & Directions</h4>
+                                    </div>
+                                    <p className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed font-sans">{selectedMosqueDetail.address}</p>
                                 </div>
                             )}
                         </div>
-                        <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2 font-sans">
-                            <button onClick={() => { if (!personalLists.Favorites?.includes(selectedMosqueId)) togglePersonalList('Favorites', selectedMosqueId); setActiveModal('personalList'); }} className={`flex items-center justify-center w-full font-bold py-3.5 rounded-2xl transition-all ${personalLists.Favorites?.includes(selectedMosqueDetail.id) ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'}`}>
-                                <i className={`fas fa-heart mr-2 ${personalLists.Favorites?.includes(selectedMosqueDetail.id) ? 'text-red-500' : 'text-gray-400'}`}></i>{personalLists.Favorites?.includes(selectedMosqueDetail.id) ? 'Saved to Favorites' : 'Add to Favorites'}
-                            </button>
-                            {selectedMosqueDetail.locationLink && (
-                                <a href={selectedMosqueDetail.locationLink} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-lg transition"><i className="fas fa-location-arrow mr-2"></i> Directions</a>
-                            )}
+
+                        {/* Footer Actions */}
+                        <div className="p-6 pt-2 border-t border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
+                            <div className="flex gap-3">
+                                <button onClick={() => { if (!personalLists.Favorites?.includes(selectedMosqueId)) togglePersonalList('Favorites', selectedMosqueId); setActiveModal('personalList'); }} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-[1.25rem] transition-all border font-sans ${personalLists.Favorites?.includes(selectedMosqueId) ? 'bg-red-50 dark:bg-red-900/20 text-red-600 border-red-100 dark:border-red-900/30 shadow-sm shadow-red-500/5' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-100 dark:border-gray-700'}`}>
+                                    <i className={`fas fa-heart ${personalLists.Favorites?.includes(selectedMosqueId) ? 'text-red-500' : 'text-gray-400'}`}></i>
+                                    <span className="text-[9px] font-bold uppercase tracking-tight">{personalLists.Favorites?.includes(selectedMosqueId) ? 'Saved Masjid' : 'Add Favorite'}</span>
+                                </button>
+                                
+                                {selectedMosqueDetail.locationLink && (
+                                    <a href={selectedMosqueDetail.locationLink} target="_blank" rel="noreferrer" className="flex-[1.5] flex items-center justify-center gap-3 bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 rounded-[1.25rem] shadow-xl shadow-brand-500/20 active:scale-[0.98] transition-all font-sans uppercase tracking-widest text-[11px]">
+                                        <i className="fas fa-location-arrow text-xs"></i> Open in Maps
+                                    </a>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
