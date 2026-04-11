@@ -657,7 +657,7 @@ export default function App() {
             return { ...m, distance: Infinity };
         });
 
-        if (currentList === 'Jummah') filtered = filtered.filter(m => m.timings?.jumma?.time);
+        if (currentList === 'Jummah') filtered = filtered.filter(m => m.timings?.jumma?.time && (m.distance === undefined || m.distance <= nearbyRadius));
         else if (currentList === 'Nearby') filtered = filtered.filter(m => m.distance !== undefined && m.distance <= nearbyRadius);
         else if (currentList !== 'All') {
             const list = personalLists[currentList] || [];
@@ -1234,8 +1234,8 @@ export default function App() {
                                 ))}
                                 <button onClick={() => setCurrentList('Jummah')} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === 'Jummah' ? 'bg-emerald-800 text-white border-emerald-800 shadow-md' : 'bg-emerald-50/30 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 border-white/20'}`}>Jummah</button>
                             </div>
-                            {currentList === 'Nearby' && (
-                                <div className="flex bg-gray-100/50 dark:bg-gray-800/50 p-0.5 rounded-xl border border-white/20 dark:border-white/5 shrink-0">
+                            {(currentList === 'Nearby' || currentList === 'Jummah') && (
+                                <div className={`flex p-0.5 rounded-xl border border-white/20 dark:border-white/5 shrink-0 ${currentList === 'Jummah' ? 'bg-emerald-100/50 dark:bg-emerald-900/50' : 'bg-gray-100/50 dark:bg-gray-800/50'}`}>
                                     {[3, 7, 12].map(r => (
                                         <button key={r} onClick={() => setNearbyRadius(r)} className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all ${nearbyRadius === r ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400'}`}>{r}km</button>
                                     ))}
@@ -1265,8 +1265,8 @@ export default function App() {
                                     </button>
                                 ))}
                             </div>
-                            {currentList === 'Nearby' && (
-                                <div className="flex bg-gray-100/50 dark:bg-gray-800/50 p-0.5 rounded-xl border border-white/10 shrink-0">
+                            {(currentList === 'Nearby' || currentList === 'Jummah') && (
+                                <div className={`flex p-0.5 rounded-xl border border-white/10 shrink-0 ${currentList === 'Jummah' ? 'bg-emerald-100/50 dark:bg-emerald-900/50' : 'bg-gray-100/50 dark:bg-gray-800/50'}`}>
                                     {[3, 7, 12].map(r => (
                                         <button key={r} onClick={() => setNearbyRadius(r)} className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all ${nearbyRadius === r ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400'}`}>{r}km</button>
                                     ))}
