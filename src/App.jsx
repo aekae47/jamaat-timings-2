@@ -100,6 +100,7 @@ export default function App() {
     const [searchCenter, setSearchCenter] = useState(null);
     const [mapCameraCenter, setMapCameraCenter] = useState(null);
     const [recenterTrigger, setRecenterTrigger] = useState(null);
+    const [nearbyRadius, setNearbyRadius] = useState(3);
 
     const [appSettings, setAppSettings] = useState({
         ramadan: false, eidFitr: false, eidAdha: false, qiyam: false, lateIsha: false,
@@ -657,7 +658,7 @@ export default function App() {
         });
 
         if (currentList === 'Jummah') filtered = filtered.filter(m => m.timings?.jumma?.time);
-        else if (currentList === 'Nearby') filtered = filtered.filter(m => m.distance !== undefined && m.distance <= 4);
+        else if (currentList === 'Nearby') filtered = filtered.filter(m => m.distance !== undefined && m.distance <= nearbyRadius);
         else if (currentList !== 'All') {
             const list = personalLists[currentList] || [];
             filtered = filtered.filter(m => list.includes(m.id));
@@ -705,7 +706,7 @@ export default function App() {
         });
 
         return filtered;
-    }, [mosques, appSettings.city, currentList, searchQuery, customOrder, searchCenter, userLocation, sortByNext, sortByList, viewMode, currentTargetPrayer, personalLists]);
+    }, [mosques, appSettings.city, currentList, searchQuery, customOrder, searchCenter, userLocation, sortByNext, sortByList, viewMode, currentTargetPrayer, personalLists, nearbyRadius]);
 
     const selectedMosqueDetail = mosques.find(m => m.id === selectedMosqueId);
 
@@ -841,31 +842,37 @@ export default function App() {
                                 const taraweehData = (pid === 'isha' && appSettings.ramadan && m.timings['taraweeh']?.time) ? m.timings['taraweeh'].time : null;
 
                                 return (
-                                    <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className={`cursor-pointer flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-2.5 rounded-xl shadow-sm border-l-[3px] ${seqIdx === 0 ? (blurPassed ? 'border-gray-300 opacity-60' : 'border-brand-500') : 'border-gray-200 dark:border-gray-700 opacity-80'} mb-2 transition-all`}>
-                                        <div className="flex-1 flex items-center gap-3">
-                                            <i className="fas fa-mosque text-sm text-gray-400"></i>
-                                            <div>
-                                                <h4 className="font-sans font-bold text-sm dark:text-white leading-tight">{m.name}</h4>
-                                                <p className="font-bold text-[10px] text-gray-500 font-medium font-sans flex items-center gap-2 mt-0.5">
-                                                    {m.area}
-                                                    {m.distance && m.distance !== Infinity && <span className="text-[9px] bg-brand-50 dark:bg-brand-900/30 text-brand-600 px-1 py-0.5 rounded">{m.distance.toFixed(1)} km</span>}
-                                                </p>
-                                                {taraweehData && <span className="inline-block mt-1 text-[8px] font-bold text-amber-800 dark:text-amber-100 px-1.5 py-0.5 rounded bg-amber-400 dark:bg-amber-600 shadow-sm uppercase font-sans">Tarāweeḥ: <span className="font-anonymous">{taraweehData}</span> P</span>}
+                                    <div key={m.id} onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }} className={`cursor-pointer flex justify-between items-center bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl shadow-sm border-l-4 ${seqIdx === 0 ? (blurPassed ? 'border-gray-200 opacity-60' : 'border-brand-500 shadow-brand-500/5') : 'border-gray-200 dark:border-gray-700 opacity-80'} mb-2.5 transition-all hover:scale-[1.01] active:scale-[0.99]`}>
+                                        <div className="flex-1 flex items-center gap-3 min-w-0">
+                                            <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center text-gray-400 shrink-0">
+                                                <i className="fas fa-mosque text-xs"></i>
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <h4 className="font-sans font-bold text-[13px] dark:text-white leading-tight break-words">{m.name}</h4>
+                                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                    <span className="font-bold text-[10px] text-gray-400 uppercase tracking-tight">{m.area}</span>
+                                                    {m.distance && m.distance !== Infinity && (
+                                                        <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0 rounded-full font-bold text-[8px] whitespace-nowrap">
+                                                            {m.distance.toFixed(1)} km
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {taraweehData && <div className="mt-1 inline-block px-1.5 py-0.5 rounded-lg bg-amber-400 dark:bg-amber-600 text-[8px] font-bold font-sans text-amber-900 dark:text-amber-50 shadow-sm leading-none whitespace-nowrap lowercase">taraweeh: <span className="font-anonymous uppercase text-[9px]">{taraweehData}</span> p</div>}
                                             </div>
                                         </div>
-                                        <div className="text-right flex flex-col items-end leading-none tabular-nums">
-                                            <div className="font-anonymous font-bold text-xl text-gray-900 dark:text-white tracking-tight relative">
+                                        <div className="flex flex-col items-center leading-none tabular-nums ml-3 shrink-0">
+                                            <div className={`font-anonymous font-bold text-lg leading-none tracking-tight relative ${seqIdx === 0 ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
                                                 {parseInt(h) % 12 || 12}:{mins}
-                                                <span className="text-[9px] ml-1 font-sans font-medium text-gray-500">{h >= 12 ? 'PM' : 'AM'}</span>
+                                                <span className="text-[9px] ml-0.5 font-sans font-medium opacity-60 uppercase">{h >= 12 ? 'pm' : 'am'}</span>
                                                 {predicted && <span className="text-amber-500 absolute -top-1 -right-2 text-[10px]" title="Predicted Timing">*</span>}
                                             </div>
                                             {t.lastUpdated && !t.fixed && (
-                                                <div className="w-full text-right font-ptsans text-[9px] text-gray-400 dark:text-gray-500 mt-1">
+                                                <div className="text-center font-ptsans text-[8px] text-gray-400 dark:text-gray-500 mt-1">
                                                     {getRelativeTime(t.lastUpdated)}
                                                 </div>
                                             )}
                                             {seqIdx === 0 && rem && (
-                                                <div className={`mt-1 text-[9px] font-semibold font-sans px-2 py-0.5 rounded-md ${exactPassed ? 'text-gray-400 bg-gray-100 dark:bg-gray-700' : 'text-brand-700 bg-brand-100 dark:bg-brand-900/40'}`}>
+                                                <div className={`mt-1.5 text-[9px] font-bold font-sans px-2 py-0.5 rounded-lg ${exactPassed ? 'text-gray-400 bg-gray-100 dark:bg-gray-700' : 'text-brand-700 bg-brand-100 dark:bg-brand-900/40 opacity-90'}`}>
                                                     {rem}
                                                 </div>
                                             )}
@@ -897,70 +904,111 @@ export default function App() {
                     </select>
                 </div>
                 {activeMosques.slice(0, visibleLimit).map(m => {
-                    let specHTML = [];
+                    let specItems = [];
                     specialPrayersList.forEach(sp => {
                         if (sp.id === 'taraweeh') return;
                         if (appSettings[sp.mode] === true && m.timings && m.timings[sp.id]?.time)
-                            specHTML.push(<div key={sp.id} className="flex justify-between px-2 py-1 bg-amber-50 dark:bg-amber-900/10 rounded mb-1 text-[9px] font-bold font-sans"><span className="text-amber-700">{sp.name}</span><span className="text-amber-800 dark:text-white font-anonymous text-xs" dangerouslySetInnerHTML={{ __html: formatTime12(m.timings[sp.id].time, sp.id) }}></span></div>);
+                            specItems.push({ ...sp, time: m.timings[sp.id].time });
                     });
                     const hasLink = m.locationLink && m.locationLink.trim() !== '';
 
                     return (
-                        <div key={m.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border-l-[3px] border-r-[3px] border-l-brand-500 border-r-gray-100 dark:border-r-gray-700 mb-3 animate-card">
-                            <div className="flex justify-between items-start mb-3">
-                                <div className="cursor-pointer flex items-start gap-3" onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }}>
-                                    <i className="fas fa-mosque text-brand-500 mt-1"></i>
-                                    <div>
-                                        <h2 className="font-sans font-bold text-sm text-gray-800 dark:text-white leading-tight">{m.name}</h2>
-                                        <p className="font-bold text-[10px] text-gray-400 font-medium font-sans flex items-center gap-2 mt-0.5">
-                                            {m.area}
-                                            {m.distance && m.distance !== Infinity && <span className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-gray-500">{m.distance.toFixed(1)} km</span>}
-                                        </p>
+                        <div key={m.id} className="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-l-[6px] border-brand-500 mb-5 animate-card hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="cursor-pointer flex items-center gap-4" onClick={() => { setSelectedMosqueId(m.id); setActiveModal('detail'); }}>
+                                    <div className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 shadow-sm shrink-0">
+                                        <i className="fas fa-mosque text-lg"></i>
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h2 className="font-sans font-bold text-sm sm:text-base text-gray-800 dark:text-white leading-tight break-words">{m.name}</h2>
+                                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                            <span className="font-bold text-[10px] sm:text-[11px] text-gray-400 font-medium font-sans uppercase tracking-wide leading-tight">
+                                                {m.area}
+                                            </span>
+                                            {m.distance && m.distance !== Infinity && (
+                                                <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold text-[9px] shadow-sm whitespace-nowrap">
+                                                    <i className="fas fa-location-arrow text-[8px]"></i> {m.distance.toFixed(1)} km
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1">
+                                <div className="flex items-center gap-1.5 p-1 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
                                     {sortByList === 'custom' && (
                                         <>
-                                            <button onClick={() => movePersonalOrder(m.id, -1)} className="w-6 h-6 rounded flex items-center justify-center text-xs text-gray-400"><i className="fas fa-chevron-up"></i></button>
-                                            <button onClick={() => movePersonalOrder(m.id, 1)} className="w-6 h-6 rounded flex items-center justify-center text-xs text-gray-400"><i className="fas fa-chevron-down"></i></button>
+                                            <button onClick={() => movePersonalOrder(m.id, -1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-gray-400 hover:text-brand-600 hover:bg-white dark:hover:bg-gray-600 transition-all"><i className="fas fa-chevron-up"></i></button>
+                                            <button onClick={() => movePersonalOrder(m.id, 1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-gray-400 hover:text-brand-600 hover:bg-white dark:hover:bg-gray-600 transition-all"><i className="fas fa-chevron-down"></i></button>
                                             <div className="w-px h-3 bg-gray-200 dark:bg-gray-600 mx-1"></div>
                                         </>
                                     )}
-                                    <button onClick={() => { setSelectedMosqueId(m.id); setActiveModal('personalList'); }} className="w-6 h-6 rounded flex items-center justify-center text-xs text-red-800"><i className="fas fa-heart"></i></button>
-                                    {(userRole === 'admin' || userRole === 'volunteer') && <button onClick={() => openMosqueModal(m.id)} className="w-6 h-6 text-brand-600 rounded flex items-center justify-center ml-1"><i className="fas fa-pencil-alt text-xs"></i></button>}
+                                    <button onClick={() => { setSelectedMosqueId(m.id); setActiveModal('personalList'); }} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-red-500 hover:bg-white dark:hover:bg-gray-600 transition-all shadow-sm"><i className="fas fa-heart"></i></button>
+                                    {(userRole === 'admin' || userRole === 'volunteer') && <button onClick={() => openMosqueModal(m.id)} className="w-7 h-7 text-brand-600 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-gray-600 transition-all shadow-sm"><i className="fas fa-pencil-alt text-[10px]"></i></button>}
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-5 gap-0.5 text-center border-t border-gray-50 dark:border-gray-700 pt-3 mb-3">
+                            <div className="flex gap-1 -mx-2 px-2">
                                 {prayersList.map(p => {
                                     const t = m.timings?.[p.id]?.time;
-                                    if (!t) return <div key={p.id} onClick={() => tryAction('edit', () => openEditTiming(m.id))} className="opacity-30 cursor-pointer"><div className="font-sans text-[8px] font-bold text-brand-500/80 mb-1 flex flex-col items-center gap-0.5 uppercase"><i className={`fas ${p.icon} text-[10px]`}></i> {p.name.slice(0, 5)}</div>-</div>;
+                                    const isJummah = p.id === 'jumma';
+                                    const isActive = p.id === currentTargetPrayer;
+                                    
+                                    if (!t) return (
+                                        <div key={p.id} onClick={() => tryAction('edit', () => openEditTiming(m.id))} className="cursor-pointer flex-1 py-2 px-1 rounded-xl border border-dashed border-gray-100 dark:border-gray-800/50 text-center opacity-30 hover:opacity-100 transition-opacity">
+                                            <div className="text-[7px] font-bold font-sans text-gray-400 uppercase mb-1 tracking-tighter flex flex-col items-center gap-0.5">
+                                                <i className={`fas ${p.icon} text-[9px]`}></i>
+                                                {p.name.slice(0, 5)}
+                                            </div>
+                                            <div className="font-anonymous text-[11px] font-bold text-gray-300 dark:text-gray-600 leading-none">--:--</div>
+                                        </div>
+                                    );
 
                                     const [h, mins] = t.split(':');
                                     const taraweehData = (p.id === 'isha' && appSettings.ramadan && m.timings['taraweeh']?.time) ? m.timings['taraweeh'].time : null;
                                     const predicted = isTimingPredicted(m.timings[p.id].lastUpdated) && !m.timings[p.id].fixed;
 
                                     return (
-                                        <div key={p.id} onClick={() => tryAction('edit', () => openEditTiming(m.id))} className="cursor-pointer py-1 relative">
-                                            <div className="text-[8px] font-bold font-sans text-brand-500/80 mb-1 flex flex-col items-center gap-0.5 uppercase"><i className={`fas ${p.icon} text-[10px]`}></i> {p.name.slice(0, 5)}</div>
-                                            <div className="font-anonymous text-sm font-bold dark:text-white">
-                                                {parseInt(h) % 12 || 12}:{mins}
-                                                <span className="text-[7px] block font-sans font-normal">{h >= 12 ? 'PM' : 'AM'}</span>
+                                        <div key={p.id} onClick={() => tryAction('edit', () => openEditTiming(m.id))} className={`cursor-pointer flex-1 py-2 px-1 rounded-xl border text-center transition-all relative ${isActive ? 'bg-teal-50 dark:bg-teal-900/40 border-teal-200 dark:border-teal-800 ring-2 ring-teal-500/20' : (isJummah ? 'bg-emerald-50 dark:bg-emerald-900/40 border-emerald-100 dark:border-emerald-800' : 'bg-gray-50 dark:bg-gray-700/40 border-gray-100 dark:border-gray-700')} hover:scale-[1.03] active:scale-95`}>
+                                            <div className={`text-[7px] font-bold font-sans ${isActive ? 'text-teal-600 dark:text-teal-400' : (isJummah ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400')} uppercase mb-1 tracking-tighter flex flex-col items-center gap-0.5`}>
+                                                <i className={`fas ${p.icon} text-[9px]`}></i>
+                                                {p.name.slice(0, 5)}
                                             </div>
-                                            {predicted && <span className="text-amber-500 absolute top-0 right-0 text-[8px]">*</span>}
-                                            {m.timings[p.id].lastUpdated && !m.timings[p.id].fixed && <div className="font-ptsans font-bold text-[8px] text-gray-400 mt-0.5">{getRelativeTime(m.timings[p.id].lastUpdated)}</div>}
-                                            {taraweehData && <div className="mx-auto mt-1 px-1 py-0.5 rounded bg-amber-400 dark:bg-amber-600 text-[6px] font-bold font-sans text-amber-900 dark:text-amber-50 w-fit"><span className="font-anonymous">{taraweehData}</span>P</div>}
+                                            <div className={`font-anonymous text-[12px] font-bold leading-none ${isActive ? 'text-teal-700 dark:text-teal-200' : 'dark:text-white'}`}>
+                                                {parseInt(h) % 12 || 12}:{mins}
+                                                <span className="text-[6px] block font-sans font-normal mt-0.5 opacity-60 uppercase">{h >= 12 ? 'pm' : 'am'}</span>
+                                            </div>
+                                            {taraweehData && <div className="mt-1 inline-block px-1 py-0.5 rounded bg-amber-400 dark:bg-amber-600 text-[5px] font-bold font-sans text-amber-900 dark:text-amber-50 shadow-sm leading-none whitespace-nowrap">T:{taraweehData}P</div>}
+                                            {predicted && <div className="absolute top-1 right-1 w-1 h-1 bg-amber-500 rounded-full animate-pulse"></div>}
                                         </div>
                                     );
                                 })}
                             </div>
-                            <div>{specHTML}</div>
+                            
+                            {specItems.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-50 dark:border-gray-700">
+                                    {specItems.map(sp => (
+                                        <div key={sp.id} className="flex-1 min-w-[100px] flex justify-between items-center px-3 py-1.5 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-xl relative group overflow-hidden">
+                                            <span className="text-amber-700 dark:text-amber-400 text-[9px] font-bold font-sans uppercase z-10">{sp.name.slice(0, 10)}</span>
+                                            <span className="text-amber-900 dark:text-white font-anonymous text-xs font-bold z-10" dangerouslySetInnerHTML={{ __html: formatTime12(sp.time, sp.id) }}></span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
-                            <div className="flex border-t border-gray-100 dark:border-gray-700 pt-2">
-                                <button onClick={(e) => { e.currentTarget.parentElement.nextSibling.classList.toggle('hidden'); }} className="flex-1 text-[10px] font-bold text-gray-400 uppercase font-sans">Notes <i className="fas fa-chevron-down"></i></button>
-                                {hasLink ? <a href={m.locationLink} target="_blank" rel="noreferrer" className="flex-1 text-[10px] font-bold font-sans text-brand-600 text-center uppercase">Maps <i className="fas fa-location-arrow"></i></a> : <span className="flex-1 text-[10px] font-bold font-sans text-gray-300 text-center uppercase cursor-not-allowed">Maps <i className="fas fa-location-arrow"></i></span>}
+                            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
+                                <button onClick={(e) => { e.currentTarget.parentElement.nextSibling.classList.toggle('hidden'); }} className="flex-1 py-2 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase font-sans bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 transition-colors">
+                                    <i className="fas fa-info-circle mr-1.5 opacity-60"></i> Notes
+                                </button>
+                                {hasLink ? (
+                                    <a href={m.locationLink} target="_blank" rel="noreferrer" className="flex-1 py-2 text-[10px] font-bold font-sans text-brand-600 dark:text-brand-400 text-center uppercase bg-brand-50/50 dark:bg-brand-900/20 rounded-xl hover:bg-brand-50 transition-colors">
+                                        <i className="fas fa-map-marker-alt mr-1.5"></i> Maps
+                                    </a>
+                                ) : (
+                                    <span className="flex-1 py-2 text-[10px] font-bold font-sans text-gray-300 dark:text-gray-700 text-center uppercase bg-gray-50 dark:bg-gray-800/50 rounded-xl cursor-not-allowed">
+                                        <i className="fas fa-map-marker-alt mr-1.5"></i> No Map
+                                    </span>
+                                )}
                             </div>
-                            <div className="hidden bg-gray-50 dark:bg-gray-700/30 p-3 text-[10px] border-t mt-2 dark:text-gray-300 whitespace-pre-line font-sans">{m.address || 'No notes.'}</div>
+                            <div className="hidden bg-gray-50 dark:bg-gray-700/20 p-4 text-[10px] border border-gray-100 dark:border-gray-700 rounded-2xl mt-3 dark:text-gray-300 whitespace-pre-line font-sans leading-relaxed shadow-inner animate-slideIn">{m.address || 'No specific notes available for this masjid.'}</div>
                         </div>
                     );
                 })}
@@ -1177,8 +1225,8 @@ export default function App() {
                         <div className="w-full py-3 flex justify-center cursor-pointer border-b border-white/10 dark:border-gray-800/20" onClick={() => setMapExpanded(!mapExpanded)}>
                             <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
                         </div>
-                        <div className="w-full px-4 py-2 bg-white/10 dark:bg-gray-800/5 backdrop-blur-lg border-b border-white/10 dark:border-gray-800/10">
-                            <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans">
+                        <div className="w-full px-4 py-2 bg-white/10 dark:bg-gray-800/5 backdrop-blur-lg border-b border-white/10 dark:border-gray-800/10 flex items-center justify-between gap-2 overflow-hidden">
+                            <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans flex-1">
                                 {['Nearby', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites', 'Home', 'Work'].includes(l))].map(list => (
                                     <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); setMapExpanded(false); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-white/30 dark:bg-gray-800/30 text-gray-500 border-white/20 dark:border-gray-700'}`}>
                                         {list}
@@ -1186,6 +1234,13 @@ export default function App() {
                                 ))}
                                 <button onClick={() => setCurrentList('Jummah')} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === 'Jummah' ? 'bg-emerald-800 text-white border-emerald-800 shadow-md' : 'bg-emerald-50/30 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 border-white/20'}`}>Jummah</button>
                             </div>
+                            {currentList === 'Nearby' && (
+                                <div className="flex bg-gray-100/50 dark:bg-gray-800/50 p-0.5 rounded-xl border border-white/20 dark:border-white/5 shrink-0">
+                                    {[3, 7, 12].map(r => (
+                                        <button key={r} onClick={() => setNearbyRadius(r)} className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all ${nearbyRadius === r ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400'}`}>{r}km</button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="flex-1 overflow-y-auto px-4 py-2" onTouchStart={() => setMapExpanded(false)} onMouseDown={() => setMapExpanded(false)} onClick={() => setMapExpanded(false)}>
                             {renderNextPrayerMode()}
@@ -1202,12 +1257,21 @@ export default function App() {
                             <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
                             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search Masājid..." className="w-full bg-white/30 dark:bg-gray-900/30 border border-white/30 dark:border-gray-600/20 rounded-lg py-2 pl-9 pr-4 text-xs font-bold outline-none dark:text-white focus:ring-2 focus:ring-brand-500 font-sans" />
                         </div>
-                        <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans py-1">
-                            {['Nearby', 'All', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites', 'Home', 'Work'].includes(l))].map(list => (
-                                <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-white/30 dark:bg-gray-800/30 text-gray-500 border-white/20 dark:border-gray-700'}`}>
-                                    {list}
-                                </button>
-                            ))}
+                        <div className="flex items-center justify-between gap-2 overflow-hidden py-1">
+                            <div className="flex overflow-x-auto no-scrollbar gap-2 font-sans flex-1">
+                                {['Nearby', 'All', 'Favorites', ...Object.keys(personalLists).filter(l => !['Favorites', 'Home', 'Work'].includes(l))].map(list => (
+                                    <button key={list} onClick={() => { setCurrentList(list); setVisibleLimit(20); }} className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${currentList === list ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-white/30 dark:bg-gray-800/30 text-gray-500 border-white/20 dark:border-gray-700'}`}>
+                                        {list}
+                                    </button>
+                                ))}
+                            </div>
+                            {currentList === 'Nearby' && (
+                                <div className="flex bg-gray-100/50 dark:bg-gray-800/50 p-0.5 rounded-xl border border-white/10 shrink-0">
+                                    {[3, 7, 12].map(r => (
+                                        <button key={r} onClick={() => setNearbyRadius(r)} className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all ${nearbyRadius === r ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400'}`}>{r}km</button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="flex-1 overflow-y-auto px-4 pt-[110px] pb-24 z-0">
